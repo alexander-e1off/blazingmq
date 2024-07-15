@@ -1,13 +1,13 @@
 name: Debug sanitizers
 
 on:
+  push:
+    branches:
+      - main
+      - ci-debug
   pull_request:
-    types:
-      - "opened"
-      - "reopened"
-      - "synchronize"
-      - "labeled"
-      - "unlabeled"
+    branches:
+      - main
 
 jobs:
   build_dependencies:
@@ -55,26 +55,26 @@ jobs:
           path: deps
           key: deps-${{ steps.get-hash.outputs.deps_hash }}
 
-  run_asan:
+    run_asan:
     needs: build_dependencies
-    uses: ${{ github.workspace }}/.github/workflows/sanitizer-check.yaml
+    uses: ./.github/workflows/sanitizer-check.yaml
     with:
       sanitizer-name: 'asan'
 
   run_msan:
     needs: build_dependencies
-    uses: ${{ github.workspace }}/.github/workflows/sanitizer-check.yaml
+    uses: ./.github/workflows/sanitizer-check.yaml
     with:
       sanitizer-name: 'msan'
 
   run_tsan:
     needs: build_dependencies
-    uses: ${{ github.workspace }}/.github/workflows/sanitizer-check.yaml
+    uses: ./.github/workflows/sanitizer-check.yaml
     with:
       sanitizer-name: 'tsan'
 
   run_ubsan:
     needs: build_dependencies
-    uses: ${{ github.workspace }}/.github/workflows/sanitizer-check.yaml
+    uses: ./.github/workflows/sanitizer-check.yaml
     with:
       sanitizer-name: 'ubsan'
