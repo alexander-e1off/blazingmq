@@ -55,7 +55,7 @@ jobs:
           path: deps
           key: deps-${{ steps.get-hash.outputs.deps_hash }}
 
-    run_asan:
+  run_asan:
     needs: build_dependencies
     uses: ./.github/workflows/sanitizer-check.yaml
     with:
