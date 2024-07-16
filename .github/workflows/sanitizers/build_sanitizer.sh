@@ -198,12 +198,12 @@ ln -sf "/opt/bb/include" "/opt/include"
 ln -sf "/opt/bb/lib64" "/opt/lib64"
 
 # Setup CMake options for all remaining builds
-CMAKE_OPTIONS="\
+CMAKE_OPTIONS=$(echo \
     -D BUILD_BITNESS=64 \
     -D CMAKE_BUILD_TYPE=Debug \
     -D CMAKE_INSTALL_INCLUDEDIR=include \
     -D CMAKE_INSTALL_LIBDIR=lib64 \
-    -D CMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_PATH}"
+    -D CMAKE_TOOLCHAIN_FILE="${TOOLCHAIN_PATH}")
 
 # Build GoogleTest
 cmake -B "${DIR_SRCS_EXT}/googletest/cmake.bld" \
