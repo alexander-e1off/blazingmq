@@ -55,17 +55,17 @@ jobs:
           path: deps
           key: deps-${{ steps.get-hash.outputs.deps_hash }}
 
-  # run_asan:
-  #   needs: build_dependencies
-  #   uses: ./.github/workflows/sanitizer-check.yaml
-  #   with:
-  #     sanitizer-name: 'asan'
+  run_asan:
+    needs: build_dependencies
+    uses: ./.github/workflows/sanitizer-check.yaml
+    with:
+      sanitizer-name: 'asan'
 
-  # run_msan:
-  #   needs: build_dependencies
-  #   uses: ./.github/workflows/sanitizer-check.yaml
-  #   with:
-  #     sanitizer-name: 'msan'
+  run_msan:
+    needs: build_dependencies
+    uses: ./.github/workflows/sanitizer-check.yaml
+    with:
+      sanitizer-name: 'msan'
 
   run_tsan:
     needs: build_dependencies
@@ -73,8 +73,8 @@ jobs:
     with:
       sanitizer-name: 'tsan'
 
-  # run_ubsan:
-  #   needs: build_dependencies
-  #   uses: ./.github/workflows/sanitizer-check.yaml
-  #   with:
-  #     sanitizer-name: 'ubsan'
+  run_ubsan:
+    needs: build_dependencies
+    uses: ./.github/workflows/sanitizer-check.yaml
+    with:
+      sanitizer-name: 'ubsan'
