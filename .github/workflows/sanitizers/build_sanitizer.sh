@@ -66,7 +66,7 @@ sudo apt-get install -qy cmake
 # Install LLVM
 wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh 
-LLVM_VERSION=18
+LLVM_VERSION=17
 sudo ./llvm.sh ${LLVM_VERSION} all
 
 # Create version-agnostic pointers to required LLVM binaries.
@@ -112,7 +112,7 @@ github_url() { echo "https://github.com/$1.git"; }
 mkdir -p "${DIR_SRCS_EXT}"
 
 # Download LLVM
-LLVM_TAG="llvmorg-18.1.8"
+LLVM_TAG="llvmorg-17.0.6"
 curl -SL "https://github.com/llvm/llvm-project/archive/refs/tags/${LLVM_TAG}.tar.gz" \
     | tar -xzC "${DIR_SRCS_EXT}"
 mv "${DIR_SRCS_EXT}/llvm-project-${LLVM_TAG}" "${DIR_SRCS_EXT}/llvm-project"
