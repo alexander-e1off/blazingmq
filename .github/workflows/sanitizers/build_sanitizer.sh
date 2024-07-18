@@ -66,8 +66,8 @@ sudo apt-get install -qy cmake
 # Install LLVM
 wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh 
-LLVM_VERSION=17
-sudo ./llvm.sh ${LLVM_VERSION} all
+LLVM_VERSION=18
+sudo ./llvm.sh ${LLVM_VERSION} clang
 
 # Create version-agnostic pointers to required LLVM binaries.
 sudo ln -sf /usr/bin/clang-${LLVM_VERSION} /usr/bin/clang
@@ -112,7 +112,7 @@ github_url() { echo "https://github.com/$1.git"; }
 mkdir -p "${DIR_SRCS_EXT}"
 
 # Download LLVM
-LLVM_TAG="llvmorg-17.0.6"
+LLVM_TAG="llvmorg-18.1.8"
 curl -SL "https://github.com/llvm/llvm-project/archive/refs/tags/${LLVM_TAG}.tar.gz" \
     | tar -xzC "${DIR_SRCS_EXT}"
 mv "${DIR_SRCS_EXT}/llvm-project-${LLVM_TAG}" "${DIR_SRCS_EXT}/llvm-project"
@@ -212,7 +212,6 @@ cmake -B "${DIR_SRCS_EXT}/googletest/cmake.bld" \
 cmake --build "${DIR_SRCS_EXT}/googletest/cmake.bld" -j${PARALLELISM}
 cmake --install "${DIR_SRCS_EXT}/googletest/cmake.bld" --prefix "/opt/bb"
 
-
 # Build Google Benchmark
 cmake -B "${DIR_SRCS_EXT}/google-benchmark/cmake.bld" \
         -S "${DIR_SRCS_EXT}/google-benchmark" "${CMAKE_OPTIONS[@]}" \
@@ -253,7 +252,7 @@ envcfgquery() {
     # be used to set the environment for a command.
     #   e.g. 'asan' -> 'ASAN_OPTIONS="foo=bar:baz=baf" LSAN_OPTIONS="abc=fgh"'
     #
-    cfgquery "                        \
+    cfgquery "                           \
         .${1}.environment |              \
         to_entries |                     \
         map(\"\(.key)=\\\"\(.value |     \
