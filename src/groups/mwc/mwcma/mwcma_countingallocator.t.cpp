@@ -204,10 +204,9 @@ static void test3_deallocate()
     // skip the testcase.
 #if defined(__has_feature)  // Clang-supported method for checking sanitizers.
     const bool skipTestForSanitizers = __has_feature(address_sanitizer) ||
-                                       __has_feature(memory_sanitizer) ||
-                                       __has_feature(thread_sanitizer);
-#elif defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_THREAD__)
-    // GCC-supported macros for checking ASAN and TSAN.
+                                       __has_feature(memory_sanitizer);
+#elif defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_MEMORY__)
+    // GCC-supported macros for checking ASAN and MSAN.
     const bool skipTestForSanitizers = true;
 #else
     const bool skipTestForSanitizers = false;  // Default to running the test.
