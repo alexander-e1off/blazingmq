@@ -99,19 +99,18 @@ static const ChannelWatermarkType::Enum WAT_LOW =
     ChannelWatermarkType::e_LOW_WATERMARK;
 
 #ifdef BSLS_PLATFORM_OS_SOLARIS
-static const bool skipTest = true;
+static const int k_ATTEMPT_INTERVAL_MS = 10;
 #elif defined(                                                                \
     __has_feature)  // Clang-supported method for checking sanitizers.
-static const bool skipTest = false;  // Default to running the test.
-// static const bool skipTest = __has_feature(memory_sanitizer) ||
-//                              __has_feature(thread_sanitizer) ||
-//                              __has_feature(undefined_behavior_sanitizer);
+    #if __has_feature(memory_sanitizer) || __has_feature(thread_sanitizer) || __has_feature(undefined_behavior_sanitizer)
+        static const int k_ATTEMPT_INTERVAL_MS = 10;
+    #endif
 #elif defined(__SANITIZE_MEMORY__) || defined(__SANITIZE_THREAD__) ||         \
     defined(__SANITIZE_UNDEFINED__)
 // GCC-supported macros for checking MSAN, TSAN and UBSAN.
-static const bool skipTest = true;
+static const int k_ATTEMPT_INTERVAL_MS = 10;
 #else
-static const bool skipTest = false;  // Default to running the test.
+static const int k_ATTEMPT_INTERVAL_MS = 10;
 #endif
 
 // ========================
@@ -660,9 +659,7 @@ void Tester::connect(int                          line,
     ConnectOptions reqOptions(options, s_allocator_p);
 
     reqOptions.setAttemptInterval(
-        bsls::TimeInterval(0, 500 * bdlt::TimeUnitRatio::k_NS_PER_MS));
-
-    // reqOptions.setAttemptInterval(bsls::TimeInterval(0, 1));
+        bsls::TimeInterval(0, k_ATTEMPT_INTERVAL_MS * bdlt::TimeUnitRatio::k_NS_PER_MS));
 
     HandleMap::iterator serverIter = d_handleMap.find(endpointOrServer);
     if (serverIter != d_handleMap.end()) {
