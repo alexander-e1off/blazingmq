@@ -102,9 +102,10 @@ static const ChannelWatermarkType::Enum WAT_LOW =
 static const bool skipTest = true;
 #elif defined(                                                                \
     __has_feature)  // Clang-supported method for checking sanitizers.
-static const bool skipTest = __has_feature(memory_sanitizer) ||
-                             __has_feature(thread_sanitizer) ||
-                             __has_feature(undefined_behavior_sanitizer);
+static const bool skipTest = false;  // Default to running the test.
+// static const bool skipTest = __has_feature(memory_sanitizer) ||
+//                              __has_feature(thread_sanitizer) ||
+//                              __has_feature(undefined_behavior_sanitizer);
 #elif defined(__SANITIZE_MEMORY__) || defined(__SANITIZE_THREAD__) ||         \
     defined(__SANITIZE_UNDEFINED__)
 // GCC-supported macros for checking MSAN, TSAN and UBSAN.
@@ -659,9 +660,9 @@ void Tester::connect(int                          line,
     ConnectOptions reqOptions(options, s_allocator_p);
 
     reqOptions.setAttemptInterval(
-        bsls::TimeInterval(0, 10 * bdlt::TimeUnitRatio::k_NS_PER_MS));
+        bsls::TimeInterval(0, 500 * bdlt::TimeUnitRatio::k_NS_PER_MS));
 
-    reqOptions.setAttemptInterval(bsls::TimeInterval(0, 1));
+    // reqOptions.setAttemptInterval(bsls::TimeInterval(0, 1));
 
     HandleMap::iterator serverIter = d_handleMap.find(endpointOrServer);
     if (serverIter != d_handleMap.end()) {
