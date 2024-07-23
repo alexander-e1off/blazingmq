@@ -206,8 +206,8 @@ static void test3_deallocate()
     const bool skipTestForSanitizers = __has_feature(address_sanitizer) ||
                                        __has_feature(memory_sanitizer) ||
                                        __has_feature(thread_sanitizer);
-#elif defined(__SANITIZE_ADDRESS__) ||                                        \
-    defined(__SANITIZE_MEMORY__ || defined(__SANITIZE_THREAD__)
+#elif defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_MEMORY__) ||        \
+    defined(__SANITIZE_THREAD__)
     // GCC-supported macros for checking ASAN, MSAN and TSAN.
     const bool skipTestForSanitizers = true;
 #else
