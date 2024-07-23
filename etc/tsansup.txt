@@ -33,4 +33,4 @@ race:BloombergLP::bcema_Pool<*>::allocate
 # Since we use mqbmock::Dispatcher in unit tests, this method does not get
 # enqueued correctly back to cluster-dispatcher thread, causing potential
 # data race.
-#race:BloombergLP::mqbc::ClusterStateManager::onWatchDogDispatched()
+race:BloombergLP::mqbc::ClusterStateManager::onWatchDogDispatched()
