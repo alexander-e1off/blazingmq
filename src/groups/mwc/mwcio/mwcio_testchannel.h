@@ -248,6 +248,8 @@ class TestChannel : public Channel {
     /// Pops a close-call from those written to the channel (FIFO ordering).
     CloseCall popCloseCall();
 
+    bool      closeCallsEmpty();
+
     CloseSignaler& closeSignaler();
 
     /// Return a reference providing modifiable access to the corresponding
@@ -257,7 +259,6 @@ class TestChannel : public Channel {
     // ACCESSORS
     const Status& writeStatus() const;
     bool          hasNoMoreWriteCalls() const;   
-    bool          closeCallsEmpty() const;
 
     // Channel
     void read(Status*                   status,
