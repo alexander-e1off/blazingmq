@@ -256,7 +256,8 @@ class TestChannel : public Channel {
 
     // ACCESSORS
     const Status& writeStatus() const;
-    bool          hasNoMoreWriteCalls() const;
+    bool          hasNoMoreWriteCalls() const;   
+    bool          closeCallsEmpty() const;
 
     // Channel
     void read(Status*                   status,

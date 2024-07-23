@@ -27,7 +27,7 @@ race:BloombergLP::ball::LoggerManager::isInitialized()
 # Suppress TSan report in a routine used in bmqimp::Brokersession test driver.
 # It is a benign race in the test driver, but should be looked into at some
 # point.
-race:TestSession::waitForChannelClose
+#race:TestSession::waitForChannelClose
 race:TestSession::arriveAtStepWithCfgs
 
 # Since we use mqbmock::Dispatcher in unit tests, this method does not get

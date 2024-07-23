@@ -100,20 +100,20 @@ static const ChannelWatermarkType::Enum WAT_LOW =
 
 // Adjust attempt interval depending on the platform
 #if defined(BSLS_PLATFORM_OS_SOLARIS) || defined(BSLS_PLATFORM_OS_AIX)
-static const int k_ATTEMPT_INTERVAL_MS = 500;
+static const int k_ATTEMPT_INTERVAL_MS = 300;
 #elif defined(                                                                \
     __has_feature)  // Clang-supported method for checking sanitizers.
 static const int k_ATTEMPT_INTERVAL_MS =
     (__has_feature(memory_sanitizer) || __has_feature(thread_sanitizer) ||
      __has_feature(undefined_behavior_sanitizer))
-        ? 500
-        : 10;
+        ? 300
+        : 1;
 #elif defined(__SANITIZE_MEMORY__) || defined(__SANITIZE_THREAD__) ||         \
     defined(__SANITIZE_UNDEFINED__)
 // GCC-supported macros for checking MSAN, TSAN and UBSAN.
-static const int k_ATTEMPT_INTERVAL_MS = 500;
+static const int k_ATTEMPT_INTERVAL_MS = 300;
 #else
-static const int k_ATTEMPT_INTERVAL_MS = 10;
+static const int k_ATTEMPT_INTERVAL_MS = 1;
 #endif
 
 // ========================
