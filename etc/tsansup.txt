@@ -18,11 +18,11 @@ race:BloombergLP::bcema_Pool<*>::allocate
 #race:__tsan_atomic32_fetch_add
 
 # Don't warn about using cout from multiple threads
-#race:std::basic_ostream<char, *>& bsl::operator<< <*>(std::basic_ostream<*>&, bsl::basic_string<*> const&)
+race:std::basic_ostream<char, *>& bsl::operator<< <*>(std::basic_ostream<*>&, bsl::basic_string<*> const&)
 
 # Looks like ball::LoggerManager uses a plain ptr to store its singleton, and
 # it makes tsan warn in some cases
-#race:BloombergLP::ball::LoggerManager::isInitialized()
+race:BloombergLP::ball::LoggerManager::isInitialized()
 
 # Suppress TSan report in a routine used in bmqimp::Brokersession test driver.
 # It is a benign race in the test driver, but should be looked into at some
