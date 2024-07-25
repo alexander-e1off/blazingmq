@@ -5,9 +5,9 @@
 # assume it's right
 #race:BloombergLP::bdlcc::ObjectPool<*>::getObject
 #race:BloombergLP::bdlcc::ObjectPool<*>::releaseObject
-#race:BloombergLP::bdlma::ConcurrentPool::deallocate
-#race:BloombergLP::bdlma::ConcurrentPool::allocate
-#race:BloombergLP::bdlma::ConcurrentPool::deleteObject
+race:BloombergLP::bdlma::ConcurrentPool::deallocate
+race:BloombergLP::bdlma::ConcurrentPool::allocate
+race:BloombergLP::bdlma::ConcurrentPool::deleteObject
 
 # Similar to above, there is a lengthy comment in bcema_Pool::allocate which
 # attempts to explain why there is no race.
