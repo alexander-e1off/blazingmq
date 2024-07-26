@@ -32,6 +32,7 @@
 #include <bsls_assert.h>
 #include <bsls_atomic.h>
 #include <bsls_timeinterval.h>
+#include <bslmt_barrier.h>
 
 // CONVENIENCE
 using namespace BloombergLP;
@@ -416,6 +417,61 @@ static void test6_executor_comparison()
     }
 }
 
+enum {
+    k_OBJECT_SIZE = 56,
+    k_NUM_INTS = k_OBJECT_SIZE / sizeof(int),
+    k_NUM_OBJECTS = 10000,
+    k_NUM_THREADS = 4
+};
+
+bslmt::Barrier barrier(k_NUM_THREADS);
+extern "C"
+void *workerThread(void *arg) {
+    bdlma::ConcurrentPool *mX = (Obj *) arg;
+    ASSERT(k_OBJECT_SIZE == mX->blockSize());
+
+    barrier.wait();
+    for (int i = 0; i < k_NUM_OBJECTS; ++i) {
+        int *buffer = (int*)mX->allocate();
+        ASSERT((void*)buffer != (void*)0xAB);
+        ASSERT(buffer);
+        *buffer = 0xAB;
+        ASSERT((void*)buffer != (void*)0xAB);
+        mX->deallocate((void*)buffer);
+        ASSERT((void*)buffer != (void*)0xAB);
+    }
+    return arg;
+}
+
+// --------------------------------------------------------------------
+// CONCURRENCY TEST
+// https://github.com/bloomberg/bde/blob/4.8.0.0/groups/bdl/bdlma/bdlma_concurrentpool.t.cpp#L792
+//
+// Concern:
+//   Thread-safety of allocate/deallocate methods.
+//
+// Testing:
+//   CONCURRENCY TEST
+// --------------------------------------------------------------------
+static void test7_concurrent_pool()
+{
+    s_ignoreCheckGblAlloc = true;
+    s_ignoreCheckDefAlloc = true;
+
+    bslmt::ThreadUtil::Handle threads[k_NUM_THREADS];
+    bdlma::ConcurrentPool mX(k_OBJECT_SIZE);
+    for (int i = 0; i < k_NUM_THREADS; ++i) {
+        int rc = bslmt::ThreadUtil::create(&threads[i],
+                                            workerThread,
+                                            &mX);
+        ASSERT(0 == rc);
+    }
+    for (int i = 0; i < k_NUM_THREADS; ++i) {
+        int rc = bslmt::ThreadUtil::join(threads[i]);
+        ASSERT(0 == rc);
+    }
+}
+
 // ============================================================================
 //                                 MAIN PROGRAM
 // ----------------------------------------------------------------------------
@@ -431,6 +487,7 @@ int main(int argc, char* argv[])
     case 4: test4_executor_post(); break;
     case 5: test5_executor_dispatch(); break;
     case 6: test6_executor_comparison(); break;
+    case 7: test7_concurrent_pool(); break;
 
     default: {
         bsl::cerr << "WARNING: CASE '" << _testCase << "' NOT FOUND."
