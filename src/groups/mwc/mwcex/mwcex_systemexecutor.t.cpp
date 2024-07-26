@@ -427,7 +427,7 @@ enum {
 bslmt::Barrier barrier(k_NUM_THREADS);
 extern "C"
 void *workerThread(void *arg) {
-    bdlma::ConcurrentPool *mX = (Obj *) arg;
+    bdlma::ConcurrentPool *mX = (bdlma::ConcurrentPool *) arg;
     ASSERT(k_OBJECT_SIZE == mX->blockSize());
 
     barrier.wait();
