@@ -210,8 +210,6 @@ void CapacityMeter::reserve(bsls::Types::Int64* nbMessagesAvailable,
         return;  // RETURN
     }
 
-    BALL_LOG_WARN << "CapacityMeter::reserve";
-
     bsls::SpinLockGuard guard(&d_lock);  // d_lock LOCK
 
     // First check with self how much resource is available
@@ -272,8 +270,6 @@ void CapacityMeter::commit(bsls::Types::Int64 messages,
         return;  // RETURN
     }
 
-    BALL_LOG_WARN << "CapacityMeter::commit";
-
     // PRECONDITIONS: Since resources must always be reserved prior to being
     //                committed, we should never be requested to put more than
     //                has been reserved or more than the configured capacity.
@@ -313,8 +309,6 @@ CapacityMeter::commitUnreserved(bsls::Types::Int64 messages,
     if (d_isDisabled) {
         return e_SUCCESS;  // RETURN
     }
-
-    BALL_LOG_WARN << "CapacityMeter::commitUnreserved";
 
     bsls::SpinLockGuard guard(&d_lock);  // d_lock LOCK
 
@@ -364,8 +358,6 @@ void CapacityMeter::forceCommit(bsls::Types::Int64 messages,
     if (d_isDisabled) {
         return;  // RETURN
     }
-
-    BALL_LOG_WARN << "CapacityMeter::forceCommit";
 
     {
         bsls::SpinLockGuard guard(&d_lock);  // d_lock LOCK
