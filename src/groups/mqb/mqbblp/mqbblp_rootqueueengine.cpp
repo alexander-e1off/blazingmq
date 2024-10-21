@@ -415,7 +415,12 @@ int RootQueueEngine::initializeAppId(const bsl::string& appId,
                                      bsl::ostream&      errorDescription,
                                      unsigned int       upstreamSubQueueId)
 {
-    if (d_apps.findByKey1(appId) != d_apps.end()) {
+    Apps::iterator iter = d_apps.findByKey1(appId);
+
+    if (iter != d_apps.end()) {
+        mqbconfm::Expression empty(d_allocator_p);
+        iter->value()->setSubscription(empty);
+
         // Don't reconfigure an AppId that is already registered.
         return 0;  // RETURN
     }
@@ -439,9 +444,7 @@ int RootQueueEngine::initializeAppId(const bsl::string& appId,
     }
     BSLS_ASSERT_SAFE(!appKey.isNull());
 
-    Apps::iterator iter = makeSubStream(appId,
-                                        AppKeyCount(appKey, 0),
-                                        upstreamSubQueueId);
+    iter = makeSubStream(appId, AppKeyCount(appKey, 0), upstreamSubQueueId);
 
     iter->value()->authorize(appKey, ordinal);
 
@@ -1962,7 +1965,7 @@ void RootQueueEngine::afterAppIdRegistered(
 
     BSLS_ASSERT_SAFE(!key.isNull());
 
-    d_queueState_p->storageManager()->updateQueue(
+    d_queueState_p->storageManager()->updateQueuePrimary(
         d_queueState_p->uri(),
         d_queueState_p->key(),
         d_queueState_p->partitionId(),
@@ -2015,7 +2018,7 @@ void RootQueueEngine::afterAppIdUnregistered(
         }
     }
 
-    d_queueState_p->storageManager()->updateQueue(
+    d_queueState_p->storageManager()->updateQueuePrimary(
         d_queueState_p->uri(),
         d_queueState_p->key(),
         d_queueState_p->partitionId(),
@@ -2023,8 +2026,8 @@ void RootQueueEngine::afterAppIdUnregistered(
         mqbi::Storage::AppIdKeyPairs(1,
                                      mqbi::Storage::AppIdKeyPair(appId,
                                                                  appKey)));
-    // No need to log in case of failure because 'updateQueue' does it (even in
-    // case of success FTM).
+    // No need to log in case of failure because 'updateQueuePrimary' does it
+    // (even in case of success FTM).
 
     d_consumptionMonitor.unregisterSubStream(appKey);
 }
