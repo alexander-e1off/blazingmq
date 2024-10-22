@@ -1023,7 +1023,7 @@ void FileBackedStorage::clearSelection()
 }
 
 bsl::ostream&
-FileBackedStorage::logAppsSubscriptionInfoCb(bsl::ostream& stream)
+FileBackedStorage::logAppsSubscriptionInfoCb(bsl::ostream& stream) const
 {
     if (queue()) {
         mqbi::Storage::AppIdKeyPairs appIdKeyPairs;
