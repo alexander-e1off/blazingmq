@@ -466,7 +466,9 @@ class RootQueueEngine BSLS_KEYWORD_FINAL : public mqbi::QueueEngine {
     loadInternals(mqbcmd::QueueEngine* out) const BSLS_KEYWORD_OVERRIDE;
 
     /// Log appllication subscription info for the specified `appKey` into the
-    /// specified `stream`. THREAD: This method is called from the Queue's
+    /// specified `stream`.
+    ///
+    /// THREAD: This method is called from the Queue's
     /// dispatcher thread.
     virtual bsl::ostream& logAppSubscriptionInfo(
         bsl::ostream&           stream,

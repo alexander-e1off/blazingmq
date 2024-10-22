@@ -242,7 +242,7 @@ static void test2_logStateChange()
 
 static void test3_enhancedLog()
 // ------------------------------------------------------------------------
-// LOG STATE CHANGE
+// ENHANCED ALARM LOG
 //
 // Concerns:
 //   Ensure that enhanced alarm log is printed if callback is passed.
@@ -256,7 +256,7 @@ static void test3_enhancedLog()
 //   logging
 // ------------------------------------------------------------------------
 {
-    mwctst::TestHelper::printTestName("ENHANCED LOG");
+    mwctst::TestHelper::printTestName("ENHANCED ALARM LOG");
 
     // Set resource to the high watermark, it should log one
     PV("STATE - HIGH WATERMARK");
