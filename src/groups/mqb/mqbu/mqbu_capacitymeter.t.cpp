@@ -277,9 +277,10 @@ static void test3_enhancedLog()
     mwctst::ScopedLogObserver observer(ball::Severity::WARN, s_allocator_p);
     mqbu::CapacityMeter       capacityMeter(
         "dummy",
+        s_allocator_p,
         bdlf::BindUtil::bind(&logAppsSubscriptionInfoCb,
-                             bdlf::PlaceHolders::_1),  // stream
-        s_allocator_p);
+                             bdlf::PlaceHolders::_1)  // stream
+    );
     capacityMeter.setLimits(k_MSGS_LIMIT, k_BYTES_LIMIT);
     capacityMeter.setWatermarkThresholds(k_MSGS_THRESHOLD, k_BYTES_THRESHOLD);
 

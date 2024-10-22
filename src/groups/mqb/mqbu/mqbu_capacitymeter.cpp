@@ -104,25 +104,10 @@ void CapacityMeter::logOnMonitorStateTransition(
     }
 }
 
-CapacityMeter::CapacityMeter(const bsl::string& name,
-                             bslma::Allocator*  allocator)
-: CapacityMeter(name, 0, allocator)
-{
-    // NOTHING
-}
-
-CapacityMeter::CapacityMeter(const bsl::string& name,
-                             CapacityMeter*     parent,
-                             bslma::Allocator*  allocator)
-: CapacityMeter(name, 0, parent, allocator)
-{
-    // NOTHING
-}
-
 CapacityMeter::CapacityMeter(
-    const bsl::string&              name,
-    const LogAppsSubscriptionInfoCb logAppsSubscriptionInfoCb,
-    bslma::Allocator*               allocator)
+    const bsl::string&        name,
+    bslma::Allocator*         allocator,
+    LogAppsSubscriptionInfoCb logAppsSubscriptionInfoCb)
 : d_name(name, allocator)
 , d_isDisabled(false)
 , d_parent_p(0)
@@ -142,10 +127,10 @@ CapacityMeter::CapacityMeter(
 }
 
 CapacityMeter::CapacityMeter(
-    const bsl::string&              name,
-    const LogAppsSubscriptionInfoCb logAppsSubscriptionInfoCb,
-    CapacityMeter*                  parent,
-    bslma::Allocator*               allocator)
+    const bsl::string&        name,
+    CapacityMeter*            parent,
+    bslma::Allocator*         allocator,
+    LogAppsSubscriptionInfoCb logAppsSubscriptionInfoCb)
 : d_name(name, allocator)
 , d_isDisabled(false)
 , d_parent_p(parent)

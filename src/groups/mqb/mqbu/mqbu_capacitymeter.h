@@ -253,30 +253,20 @@ class CapacityMeter {
 
     // CREATORS
 
-    /// Create a new un-configured object having the specified `name` and
-    /// using the specified `allocator`.
-    CapacityMeter(const bsl::string& name, bslma::Allocator* allocator);
+    /// Create a new un-configured object having the specified `name`,
+    /// using the specified `allocator` and optionally specified
+    /// `logAppsSubscriptionInfoCb`.
+    CapacityMeter(const bsl::string&        name,
+                  bslma::Allocator*         allocator,
+                  LogAppsSubscriptionInfoCb logAppsSubscriptionInfoCb = 0);
 
     /// Create a new un-configured object having the specified `name`, being
     /// a child of the specified `parent` meter and using the specified
-    /// `allocator`.
-    CapacityMeter(const bsl::string& name,
-                  CapacityMeter*     parent,
-                  bslma::Allocator*  allocator);
-
-    /// Create a new un-configured object having the specified `name`,
-    /// `logAppsSubscriptionInfoCb` and using the specified `allocator`.
-    CapacityMeter(const bsl::string&              name,
-                  const LogAppsSubscriptionInfoCb logAppsSubscriptionInfoCb,
-                  bslma::Allocator*               allocator);
-
-    /// Create a new un-configured object having the specified `name`,
-    /// `logAppsSubscriptionInfoCb`, being a child of the specified `parent`
-    /// meter and using the specified `allocator`.
-    CapacityMeter(const bsl::string&              name,
-                  const LogAppsSubscriptionInfoCb logAppsSubscriptionInfoCb,
-                  CapacityMeter*                  parent,
-                  bslma::Allocator*               allocator);
+    /// `allocator` and optionally specified `logAppsSubscriptionInfoCb`.
+    CapacityMeter(const bsl::string&        name,
+                  CapacityMeter*            parent,
+                  bslma::Allocator*         allocator,
+                  LogAppsSubscriptionInfoCb logAppsSubscriptionInfoCb = 0);
 
     // MANIPULATORS
 

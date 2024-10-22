@@ -121,11 +121,12 @@ FileBackedStorage::FileBackedStorage(
 , d_ttlSeconds(config.messageTtl())
 , d_capacityMeter(
       "queue [" + queueUri.asString() + "]",
+      parentCapacityMeter,
+      allocator,
       bdlf::BindUtil::bind(&FileBackedStorage::logAppsSubscriptionInfoCb,
                            this,
-                           bdlf::PlaceHolders::_1),  // stream
-      parentCapacityMeter,
-      allocator)
+                           bdlf::PlaceHolders::_1)  // stream
+      )
 , d_handles(bsls::TimeInterval()
                 .addMilliseconds(config.deduplicationTimeMs())
                 .totalNanoseconds(),
