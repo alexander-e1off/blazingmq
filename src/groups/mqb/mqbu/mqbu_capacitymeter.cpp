@@ -17,10 +17,10 @@
 #include <mqbu_capacitymeter.h>
 
 #include <mqbscm_version.h>
-// MWC
-#include <mwctsk_alarmlog.h>
-#include <mwcu_memoutstream.h>
-#include <mwcu_printutil.h>
+
+#include <bmqtsk_alarmlog.h>
+#include <bmqu_memoutstream.h>
+#include <bmqu_printutil.h>
 
 // BDE
 #include <bdlb_print.h>
@@ -54,29 +54,29 @@ void CapacityMeter::logOnMonitorStateTransition(
 {
     const size_t k_INITIAL_BUFFER_SIZE = 256;
 
-    mwcu::MemOutStream categoryStream(k_INITIAL_BUFFER_SIZE);
-    mwcu::MemOutStream stream(k_INITIAL_BUFFER_SIZE);
+    bmqu::MemOutStream categoryStream(k_INITIAL_BUFFER_SIZE);
+    bmqu::MemOutStream stream(k_INITIAL_BUFFER_SIZE);
 
     categoryStream << "CAPACITY_" << d_monitor.state();
     stream << "for '" << name() << "':";
 
     stream << " [Messages (" << d_monitor.messageState()
-           << "): " << mwcu::PrintUtil::prettyNumber(d_monitor.messages())
+           << "): " << bmqu::PrintUtil::prettyNumber(d_monitor.messages())
            << " (limit: "
-           << mwcu::PrintUtil::prettyNumber(d_monitor.messageCapacity());
+           << bmqu::PrintUtil::prettyNumber(d_monitor.messageCapacity());
 
     if (d_nbMessagesReserved > 0) {
         stream << ", reserved: "
-               << mwcu::PrintUtil::prettyNumber(d_nbMessagesReserved);
+               << bmqu::PrintUtil::prettyNumber(d_nbMessagesReserved);
     }
 
     stream << "), Bytes (" << d_monitor.byteState()
-           << "): " << mwcu::PrintUtil::prettyBytes(d_monitor.bytes())
+           << "): " << bmqu::PrintUtil::prettyBytes(d_monitor.bytes())
            << " (limit: "
-           << mwcu::PrintUtil::prettyBytes(d_monitor.byteCapacity());
+           << bmqu::PrintUtil::prettyBytes(d_monitor.byteCapacity());
     if (d_nbBytesReserved > 0) {
         stream << ", reserved: "
-               << mwcu::PrintUtil::prettyBytes(d_nbBytesReserved);
+               << bmqu::PrintUtil::prettyBytes(d_nbBytesReserved);
     }
     stream << ")]";
 
@@ -414,24 +414,24 @@ CapacityMeter::print(bsl::ostream& stream, int level, int spacesPerLevel) const
         bsls::SpinLockGuard guard(&d_lock);  // d_lock LOCK
 
         stream << name() << ":"
-               << mwcu::PrintUtil::newlineAndIndent(level + 1, spacesPerLevel)
+               << bmqu::PrintUtil::newlineAndIndent(level + 1, spacesPerLevel)
                << "Messages: [current: "
-               << mwcu::PrintUtil::prettyNumber(d_monitor.messages())
+               << bmqu::PrintUtil::prettyNumber(d_monitor.messages())
                << ", limit: "
-               << mwcu::PrintUtil::prettyNumber(d_monitor.messageCapacity());
+               << bmqu::PrintUtil::prettyNumber(d_monitor.messageCapacity());
         if (d_nbMessagesReserved != 0) {
             stream << ", reserved: "
-                   << mwcu::PrintUtil::prettyNumber(d_nbMessagesReserved);
+                   << bmqu::PrintUtil::prettyNumber(d_nbMessagesReserved);
         }
         stream << "]"
-               << mwcu::PrintUtil::newlineAndIndent(level + 1, spacesPerLevel)
+               << bmqu::PrintUtil::newlineAndIndent(level + 1, spacesPerLevel)
                << "Bytes   : [current: "
-               << mwcu::PrintUtil::prettyBytes(d_monitor.bytes())
+               << bmqu::PrintUtil::prettyBytes(d_monitor.bytes())
                << ", limit: "
-               << mwcu::PrintUtil::prettyBytes(d_monitor.byteCapacity());
+               << bmqu::PrintUtil::prettyBytes(d_monitor.byteCapacity());
         if (d_nbBytesReserved != 0) {
             stream << ", reserved: "
-                   << mwcu::PrintUtil::prettyBytes(d_nbBytesReserved);
+                   << bmqu::PrintUtil::prettyBytes(d_nbBytesReserved);
         }
         stream << "]";
     }
@@ -453,11 +453,11 @@ bsl::ostream& CapacityMeter::printShortSummary(bsl::ostream& stream) const
     {
         bsls::SpinLockGuard guard(&d_lock);  // d_lock LOCK
         stream << "Messages [current: "
-               << mwcu::PrintUtil::prettyNumber(d_monitor.messages()) << " / "
-               << mwcu::PrintUtil::prettyNumber(d_monitor.messageCapacity())
+               << bmqu::PrintUtil::prettyNumber(d_monitor.messages()) << " / "
+               << bmqu::PrintUtil::prettyNumber(d_monitor.messageCapacity())
                << "], Bytes [current: "
-               << mwcu::PrintUtil::prettyBytes(d_monitor.bytes()) << " / "
-               << mwcu::PrintUtil::prettyBytes(d_monitor.byteCapacity())
+               << bmqu::PrintUtil::prettyBytes(d_monitor.bytes()) << " / "
+               << bmqu::PrintUtil::prettyBytes(d_monitor.byteCapacity())
                << "]";
     }
 

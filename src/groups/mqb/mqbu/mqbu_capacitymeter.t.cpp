@@ -16,9 +16,8 @@
 // mqbu_capacitymeter.t.cpp                                           -*-C++-*-
 #include <mqbu_capacitymeter.h>
 
-// MWC
-#include <mwctst_scopedlogobserver.h>
-#include <mwcu_memoutstream.h>
+#include <bmqtst_scopedlogobserver.h>
+#include <bmqu_memoutstream.h>
 
 // BDE
 #include <ball_log.h>
@@ -27,7 +26,7 @@
 #include <bsls_types.h>
 
 // TEST DRIVER
-#include <mwctst_testhelper.h>
+#include <bmqtst_testhelper.h>
 
 // CONVENIENCE
 using namespace BloombergLP;
@@ -60,7 +59,7 @@ static void test1_breathingTest()
 // Testing:
 //   Basic functionality
 {
-    mwctst::TestHelper::printTestName("BREATHING TEST");
+    bmqtst::TestHelper::printTestName("BREATHING TEST");
 
     const char* k_NAME = "dummy";
 
@@ -94,7 +93,7 @@ static void test2_logStateChange()
 //   logging
 // ------------------------------------------------------------------------
 {
-    mwctst::TestHelper::printTestName("LOG STATE CHANGE");
+    bmqtst::TestHelper::printTestName("LOG STATE CHANGE");
 
     s_ignoreCheckDefAlloc = true;
     // Logging infrastructure allocates using the default allocator, and
@@ -113,7 +112,7 @@ static void test2_logStateChange()
     {
         PV("STATE - NORMAL");
 
-        mwctst::ScopedLogObserver observer(ball::Severity::WARN,
+        bmqtst::ScopedLogObserver observer(ball::Severity::WARN,
                                            s_allocator_p);
         mqbu::CapacityMeter       capacityMeter("dummy", s_allocator_p);
         capacityMeter.setLimits(k_MSGS_LIMIT, k_BYTES_LIMIT);
@@ -130,7 +129,7 @@ static void test2_logStateChange()
     {
         PV("STATE - HIGH WATERMARK");
 
-        mwctst::ScopedLogObserver observer(ball::Severity::WARN,
+        bmqtst::ScopedLogObserver observer(ball::Severity::WARN,
                                            s_allocator_p);
         mqbu::CapacityMeter       capacityMeter("dummy", s_allocator_p);
         capacityMeter.setLimits(k_MSGS_LIMIT, k_BYTES_LIMIT);
@@ -155,12 +154,12 @@ static void test2_logStateChange()
         const ball::Record& record = observer.records()[0];
         ASSERT_EQ(record.fixedFields().severity(), ball::Severity::ERROR);
 
-        ASSERT(mwctst::ScopedLogObserverUtil::recordMessageMatch(
+        ASSERT(bmqtst::ScopedLogObserverUtil::recordMessageMatch(
             record,
             "ALARM \\[CAPACITY_STATE_HIGH_WATERMARK\\]",
             s_allocator_p));
         // This pattern is looked for to generate an alarm
-        ASSERT(mwctst::ScopedLogObserverUtil::recordMessageMatch(
+        ASSERT(bmqtst::ScopedLogObserverUtil::recordMessageMatch(
             record,
             "dummy.*Messages.*HIGH_WATERMARK",
             s_allocator_p));
@@ -170,7 +169,7 @@ static void test2_logStateChange()
     {
         PV("STATE - FULL");
 
-        mwctst::ScopedLogObserver observer(ball::Severity::WARN,
+        bmqtst::ScopedLogObserver observer(ball::Severity::WARN,
                                            s_allocator_p);
         mqbu::CapacityMeter       capacityMeter("dummy", s_allocator_p);
         capacityMeter.setLimits(k_MSGS_LIMIT, k_BYTES_LIMIT);
@@ -183,12 +182,12 @@ static void test2_logStateChange()
 
         ASSERT_EQ(observer.records()[0].fixedFields().severity(),
                   ball::Severity::ERROR);
-        ASSERT(mwctst::ScopedLogObserverUtil::recordMessageMatch(
+        ASSERT(bmqtst::ScopedLogObserverUtil::recordMessageMatch(
             observer.records()[0],
             "ALARM \\[CAPACITY_STATE_FULL\\]",
             s_allocator_p));
         // This pattern is looked for to generate an alarm
-        ASSERT(mwctst::ScopedLogObserverUtil::recordMessageMatch(
+        ASSERT(bmqtst::ScopedLogObserverUtil::recordMessageMatch(
             observer.records()[0],
             "dummy.*Messages.*FULL",
             s_allocator_p));
@@ -199,7 +198,7 @@ static void test2_logStateChange()
     {
         PV("STATE - HIGH WATERMARK TO FULL");
 
-        mwctst::ScopedLogObserver observer(ball::Severity::WARN,
+        bmqtst::ScopedLogObserver observer(ball::Severity::WARN,
                                            s_allocator_p);
         mqbu::CapacityMeter       capacityMeter("dummy", s_allocator_p);
         capacityMeter.setLimits(k_MSGS_LIMIT, k_BYTES_LIMIT);
@@ -211,12 +210,12 @@ static void test2_logStateChange()
 
         ASSERT_EQ(observer.records().size(), 1U);
 
-        ASSERT(mwctst::ScopedLogObserverUtil::recordMessageMatch(
+        ASSERT(bmqtst::ScopedLogObserverUtil::recordMessageMatch(
             observer.records()[0],
             "ALARM \\[CAPACITY_STATE_HIGH_WATERMARK\\]",
             s_allocator_p));
         // This pattern is looked for to generate an alarm
-        ASSERT(mwctst::ScopedLogObserverUtil::recordMessageMatch(
+        ASSERT(bmqtst::ScopedLogObserverUtil::recordMessageMatch(
             observer.records()[0],
             "dummy.*Messages.*HIGH_WATERMARK",
             s_allocator_p));
@@ -228,12 +227,12 @@ static void test2_logStateChange()
                                            k_MSGS_HIGH_WATERMARK_VALUE,
                                        10);
         ASSERT_EQ(observer.records().size(), 2U);
-        ASSERT(mwctst::ScopedLogObserverUtil::recordMessageMatch(
+        ASSERT(bmqtst::ScopedLogObserverUtil::recordMessageMatch(
             observer.records()[1],
             "ALARM \\[CAPACITY_STATE_FULL\\]",
             s_allocator_p));
         // This pattern is looked for to generate an alarm
-        ASSERT(mwctst::ScopedLogObserverUtil::recordMessageMatch(
+        ASSERT(bmqtst::ScopedLogObserverUtil::recordMessageMatch(
             observer.records()[1],
             "dummy.*Messages.*FULL",
             s_allocator_p));
@@ -319,7 +318,7 @@ static void test3_enhancedLog()
 
 int main(int argc, char* argv[])
 {
-    TEST_PROLOG(mwctst::TestHelper::e_DEFAULT);
+    TEST_PROLOG(bmqtst::TestHelper::e_DEFAULT);
 
     switch (_testCase) {
     case 0:
@@ -332,5 +331,5 @@ int main(int argc, char* argv[])
     } break;
     }
 
-    TEST_EPILOG(mwctst::TestHelper::e_CHECK_DEF_GBL_ALLOC);
+    TEST_EPILOG(bmqtst::TestHelper::e_CHECK_DEF_GBL_ALLOC);
 }
