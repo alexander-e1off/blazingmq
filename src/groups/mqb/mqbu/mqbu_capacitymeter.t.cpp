@@ -255,7 +255,7 @@ static void test3_enhancedLog()
 //   logging
 // ------------------------------------------------------------------------
 {
-    mwctst::TestHelper::printTestName("ENHANCED ALARM LOG");
+    bmqtst::TestHelper::printTestName("ENHANCED ALARM LOG");
 
     // Set resource to the high watermark, it should log one
     PV("STATE - HIGH WATERMARK");
@@ -273,7 +273,7 @@ static void test3_enhancedLog()
     const bsls::Types::Int64 k_BYTES_HIGH_WATERMARK_VALUE = k_BYTES_LIMIT *
                                                             k_BYTES_THRESHOLD;
 
-    mwctst::ScopedLogObserver observer(ball::Severity::WARN, s_allocator_p);
+    bmqtst::ScopedLogObserver observer(ball::Severity::WARN, s_allocator_p);
     mqbu::CapacityMeter       capacityMeter(
         "dummy",
         s_allocator_p,
@@ -301,12 +301,12 @@ static void test3_enhancedLog()
     const ball::Record& record = observer.records()[0];
     ASSERT_EQ(record.fixedFields().severity(), ball::Severity::ERROR);
 
-    ASSERT(mwctst::ScopedLogObserverUtil::recordMessageMatch(
+    ASSERT(bmqtst::ScopedLogObserverUtil::recordMessageMatch(
         record,
         "ALARM \\[CAPACITY_STATE_HIGH_WATERMARK\\]",
         s_allocator_p));
     // Check log from callback
-    ASSERT(mwctst::ScopedLogObserverUtil::recordMessageMatch(
+    ASSERT(bmqtst::ScopedLogObserverUtil::recordMessageMatch(
         record,
         "Test app subscription Info",
         s_allocator_p));
