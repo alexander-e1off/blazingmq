@@ -87,8 +87,8 @@ void CapacityMeter::logOnMonitorStateTransition(
             d_logAppsSubscriptionInfoCb(stream);
         }
 
-        MWCTSK_ALARMLOG_RAW_ALARM(categoryStream.str())
-            << stream.str() << MWCTSK_ALARMLOG_END;
+        BMQTSK_ALARMLOG_RAW_ALARM(categoryStream.str())
+            << stream.str() << BMQTSK_ALARMLOG_END;
     } break;
     case ResourceUsageMonitorStateTransition::e_LOW_WATERMARK: {
         BALL_LOG_INFO << "[" << categoryStream.str() << "] " << stream.str();
