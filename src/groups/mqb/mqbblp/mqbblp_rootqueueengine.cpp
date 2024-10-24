@@ -1650,19 +1650,19 @@ RootQueueEngine::logAppSubscriptionInfo(bsl::ostream&     stream,
     // Log un-delivered messages info
     stream << "\nFor appId: " << appState->appId() << "\n\n";
     stream << "Put aside list size: "
-           << mwcu::PrintUtil::prettyNumber(static_cast<bsls::Types::Int64>(
+           << bmqu::PrintUtil::prettyNumber(static_cast<bsls::Types::Int64>(
                   appState->putAsideListSize()))
            << '\n';
     stream << "Redelivery list size: "
-           << mwcu::PrintUtil::prettyNumber(static_cast<bsls::Types::Int64>(
+           << bmqu::PrintUtil::prettyNumber(static_cast<bsls::Types::Int64>(
                   appState->redeliveryListSize()))
            << '\n';
     stream << "Number of messages: "
-           << mwcu::PrintUtil::prettyNumber(
+           << bmqu::PrintUtil::prettyNumber(
                   storage->numMessages(appState->appKey()))
            << '\n';
     stream << "Number of bytes: "
-           << mwcu::PrintUtil::prettyBytes(
+           << bmqu::PrintUtil::prettyBytes(
                   storage->numBytes(appState->appKey()))
            << "\n\n";
 
@@ -1676,7 +1676,7 @@ RootQueueEngine::logAppSubscriptionInfo(bsl::ostream&     stream,
 
     // Limit to log only k_EXPR_NUM_LIMIT expressions
     static const size_t k_EXPR_NUM_LIMIT = 50;
-    mwcu::MemOutStream  ss(d_allocator_p);
+    bmqu::MemOutStream  ss(d_allocator_p);
 
     size_t exprNum = 0;
     for (bsl::vector<mqbcmd::SubscriptionGroup>::const_iterator cIt =
