@@ -36,9 +36,9 @@ using namespace bsl;
 //                                    HELPERS
 // ----------------------------------------------------------------------------
 
-bsl::ostream& logAppsSubscriptionInfoCb(bsl::ostream& stream)
+bsl::ostream& logEnhancedStorageInfoCb(bsl::ostream& stream)
 {
-    stream << "Test app subscription Info";
+    stream << "Test enhanced storage Info";
     return stream;
 }
 
@@ -247,7 +247,7 @@ static void test3_enhancedLog()
 //   Ensure that enhanced alarm log is printed if callback is passed.
 //
 // Plan:
-//   1. Pass LogAppsSubscriptionInfoCb callback during initialization
+//   1. Pass LogEnhancedStorageInfoCb callback during initialization
 //   2. Set resources to the high watermark and ensure the enhanced
 //      error message was logged.
 //
@@ -277,7 +277,7 @@ static void test3_enhancedLog()
     mqbu::CapacityMeter       capacityMeter(
         "dummy",
         s_allocator_p,
-        bdlf::BindUtil::bind(&logAppsSubscriptionInfoCb,
+        bdlf::BindUtil::bind(&logEnhancedStorageInfoCb,
                              bdlf::PlaceHolders::_1)  // stream
     );
     capacityMeter.setLimits(k_MSGS_LIMIT, k_BYTES_LIMIT);
@@ -308,7 +308,7 @@ static void test3_enhancedLog()
     // Check log from callback
     ASSERT(bmqtst::ScopedLogObserverUtil::recordMessageMatch(
         record,
-        "Test app subscription Info",
+        "Test enhanced storage Info",
         s_allocator_p));
 }
 

@@ -190,10 +190,10 @@ class CapacityMeter {
         e_LIMIT_BYTES = 2  // bytes limit was hit
     };
 
-    // Callback function to log appllications subscription info into the
+    // Callback function to log enhanced storage info into the
     // specified `stream`.
     typedef bsl::function<bsl::ostream&(bsl::ostream& stream)>
-        LogAppsSubscriptionInfoCb;
+        LogEnhancedStorageInfoCb;
 
   private:
     // DATA
@@ -224,8 +224,8 @@ class CapacityMeter {
     // SpinLock for synchronization of this
     // component
 
-    LogAppsSubscriptionInfoCb d_logAppsSubscriptionInfoCb;
-    // Callback function to log appllications subscription info into the
+    LogEnhancedStorageInfoCb d_logEnhancedStorageInfoCb;
+    // Callback function to log enhanced storage info into the
     // specified `stream`.
 
     // FRIENDS
@@ -255,18 +255,18 @@ class CapacityMeter {
 
     /// Create a new un-configured object having the specified `name`,
     /// using the specified `allocator` and optionally specified
-    /// `logAppsSubscriptionInfoCb`.
-    CapacityMeter(const bsl::string&        name,
-                  bslma::Allocator*         allocator,
-                  LogAppsSubscriptionInfoCb logAppsSubscriptionInfoCb = 0);
+    /// `logEnhancedStorageInfoCb`.
+    CapacityMeter(const bsl::string&       name,
+                  bslma::Allocator*        allocator,
+                  LogEnhancedStorageInfoCb logEnhancedStorageInfoCb = 0);
 
     /// Create a new un-configured object having the specified `name`, being
     /// a child of the specified `parent` meter and using the specified
-    /// `allocator` and optionally specified `logAppsSubscriptionInfoCb`.
-    CapacityMeter(const bsl::string&        name,
-                  CapacityMeter*            parent,
-                  bslma::Allocator*         allocator,
-                  LogAppsSubscriptionInfoCb logAppsSubscriptionInfoCb = 0);
+    /// `allocator` and optionally specified `logEnhancedStorageInfoCb`.
+    CapacityMeter(const bsl::string&       name,
+                  CapacityMeter*           parent,
+                  bslma::Allocator*        allocator,
+                  LogEnhancedStorageInfoCb logEnhancedStorageInfoCb = 0);
 
     // MANIPULATORS
 

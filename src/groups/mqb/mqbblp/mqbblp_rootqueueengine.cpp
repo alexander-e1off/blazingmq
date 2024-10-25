@@ -1673,30 +1673,31 @@ RootQueueEngine::logAppSubscriptionInfo(bsl::ostream&     stream,
     routingContext.loadInternals(&routing);
     const bsl::vector<mqbcmd::SubscriptionGroup>& subscrGroups =
         routing.subscriptionGroups();
+    if (!subscrGroups.empty()) {
+        // Limit to log only k_EXPR_NUM_LIMIT expressions
+        static const size_t k_EXPR_NUM_LIMIT = 50;
+        bmqu::MemOutStream  ss(d_allocator_p);
 
-    // Limit to log only k_EXPR_NUM_LIMIT expressions
-    static const size_t k_EXPR_NUM_LIMIT = 50;
-    bmqu::MemOutStream  ss(d_allocator_p);
-
-    size_t exprNum = 0;
-    for (bsl::vector<mqbcmd::SubscriptionGroup>::const_iterator cIt =
-             subscrGroups.begin();
-         cIt != subscrGroups.end() && exprNum < k_EXPR_NUM_LIMIT;
-         ++cIt) {
-        if (!cIt->expression().empty()) {
-            ss << cIt->expression() << '\n';
-            ++exprNum;
+        size_t exprNum = 0;
+        for (bsl::vector<mqbcmd::SubscriptionGroup>::const_iterator cIt =
+                 subscrGroups.begin();
+             cIt != subscrGroups.end() && exprNum < k_EXPR_NUM_LIMIT;
+             ++cIt) {
+            if (!cIt->expression().empty()) {
+                ss << cIt->expression() << '\n';
+                ++exprNum;
+            }
         }
-    }
-    if (exprNum) {
-        if (exprNum == k_EXPR_NUM_LIMIT) {
-            stream << "First " << k_EXPR_NUM_LIMIT
-                   << " of consumer subscription expressions: ";
+        if (exprNum) {
+            if (exprNum == k_EXPR_NUM_LIMIT) {
+                stream << "First " << k_EXPR_NUM_LIMIT
+                       << " of consumer subscription expressions: ";
+            }
+            else {
+                stream << "Consumer subscription expressions: ";
+            }
+            stream << '\n' << ss.str() << '\n';
         }
-        else {
-            stream << "Consumer subscription expressions: ";
-        }
-        stream << '\n' << ss.str() << '\n';
     }
 
     // Log the first (oldest) message in a put aside list and its properties
