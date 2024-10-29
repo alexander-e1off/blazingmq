@@ -93,10 +93,14 @@ class FileBackedStorage BSLS_KEYWORD_FINAL : public ReplicatedStorage {
 
     // PRIVATE CONSTANTS
 
-    // Most likely number of records for each guid (one each of message,
-    // confirm & deletion record).  This number is correct for every queue
-    // except for the fanout one, which has more than 1 confirm records.
-    static const size_t k_MOST_LIKELY_NUM_RECORDS = 3;
+    // The most probable number of records for each guid for priority queue.
+    // Currently, the value is 2: one data record + one deletion record.
+    // With last confirm optimization, we don't write a last confirm, and don't
+    // count it here.
+    // For fanout queues, the expected number of records is more than this:
+    // one data record + (number of appIDs - 1) confirms + one deletion record,
+    // where -1 due to last confirm optimization.
+    static const size_t k_MOST_LIKELY_NUM_RECORDS = 2;
 
     // PRIVATE TYPES
     typedef bmqc::Array<DataStoreRecordHandle, k_MOST_LIKELY_NUM_RECORDS>
@@ -127,9 +131,9 @@ class FileBackedStorage BSLS_KEYWORD_FINAL : public ReplicatedStorage {
 
   public:
     // TYPES
-    typedef mqbi::Storage::AppIdKeyPair AppIdKeyPair;
+    typedef mqbi::Storage::AppInfo AppInfo;
 
-    typedef mqbi::Storage::AppIdKeyPairs AppIdKeyPairs;
+    typedef mqbi::Storage::AppInfos AppInfos;
 
     typedef ReplicatedStorage::RecordHandles RecordHandles;
 
@@ -330,8 +334,8 @@ class FileBackedStorage BSLS_KEYWORD_FINAL : public ReplicatedStorage {
 
     /// Load into the specified 'buffer' the list of pairs of appId and appKey
     // for all the virtual storages registered with this instance.
-    virtual void loadVirtualStorageDetails(AppIdKeyPairs* buffer) const
-        BSLS_KEYWORD_OVERRIDE;
+    virtual void
+    loadVirtualStorageDetails(AppInfos* buffer) const BSLS_KEYWORD_OVERRIDE;
 
     /// Store in the specified 'msgSize' the size, in bytes, of the message
     /// having the specified 'msgGUID' if found and return success, or return
@@ -716,7 +720,7 @@ inline bool FileBackedStorage::hasVirtualStorage(const bsl::string& appId,
 }
 
 inline void
-FileBackedStorage::loadVirtualStorageDetails(AppIdKeyPairs* buffer) const
+FileBackedStorage::loadVirtualStorageDetails(AppInfos* buffer) const
 {
     return d_virtualStorageCatalog.loadVirtualStorageDetails(buffer);
 }
