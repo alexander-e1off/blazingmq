@@ -604,7 +604,8 @@ void StorageManager::processStorageEventDispatched(
 
         return;  // RETURN
     }
-
+    
+    BALL_LOG_WARN << "StorageManager::processStorageEventDispatched(): before processStorageEvent()";
     fs->processStorageEvent(blob, false /* isPartitionSyncEvent */, source);
 }
 
@@ -760,6 +761,8 @@ void StorageManager::processPartitionSyncEventDispatched(
         d_fileStores[static_cast<unsigned int>(partitionId)].get();
     BSLS_ASSERT_SAFE(fs);
 
+    BALL_LOG_WARN << "StorageManager::processPartitionSyncEventDispatched(): before processStorageEvent()";
+
     fs->processStorageEvent(blob, true /* isPartitionSyncEvent */, source);
 }
 
@@ -778,6 +781,7 @@ void StorageManager::processStorageSyncRequestDispatched(
         d_fileStores[static_cast<unsigned int>(partitionId)].get();
     BSLS_ASSERT_SAFE(fs);
 
+    BALL_LOG_WARN << "StorageManager::processStorageSyncRequestDispatched(): before processStorageSyncRequest()";
     d_recoveryManager_mp->processStorageSyncRequest(message, source, fs);
 }
 
@@ -1604,6 +1608,8 @@ void StorageManager::processStorageEvent(
 
     mqbs::FileStore* fs = d_fileStores[pid].get();
     BSLS_ASSERT_SAFE(fs);
+
+    BALL_LOG_WARN << "StorageManager::processStorageEvent(): before processStorageEvent()";    
 
     fs->execute(
         bdlf::BindUtil::bind(&StorageManager::processStorageEventDispatched,

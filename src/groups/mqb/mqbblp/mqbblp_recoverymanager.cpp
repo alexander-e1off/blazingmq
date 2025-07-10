@@ -849,6 +849,12 @@ void RecoveryManager::onStorageSyncResponseDispatched(
 {
     // executed by each of the *STORAGE (QUEUE) DISPATCHER* threads
 
+
+    BALL_LOG_WARN << "RecoveryManager::onStorageSyncResponseDispatched"
+                  << " for Partition [" << partitionId
+                  << "], from node: " << responder->nodeDescription()
+                  << ", request: " << context->request();
+    
     // PRECONDITIONS
     BSLS_ASSERT_SAFE(0 <= partitionId &&
                      static_cast<unsigned int>(partitionId) <

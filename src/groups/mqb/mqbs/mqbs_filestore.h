@@ -1191,6 +1191,8 @@ inline bool FileStore::needRollover(const MappedFileDescriptor& file,
                                     bsls::Types::Uint64         position,
                                     unsigned int                length) const
 {
+    BALL_LOG_WARN << "Checking rollover for file: , position: " << position
+                 << ", length: " << length << ", fileSize: " << file.fileSize();
     BSLS_ASSERT_SAFE(position <= file.fileSize());
     return file.fileSize() < (position + length);
 }

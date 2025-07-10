@@ -9,7 +9,7 @@ CMakeUserPresets.json
 /thirdparty/
 /include/
 /install/
-/lib/
+/lib64/
 **/.idea
 
 # Eclipse IDE
@@ -42,3 +42,4 @@ src/applications/bmqbrkr/etc/etc
 
 # 'sim_cpp11_features.pl' backups
 *.bak
+my_venv

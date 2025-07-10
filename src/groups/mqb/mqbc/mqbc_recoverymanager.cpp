@@ -675,6 +675,8 @@ int RecoveryManager::processReceiveDataChunks(
         BSLS_ASSERT_SAFE(receiveDataCtx.d_currSeqNum.sequenceNumber() ==
                          fs->sequenceNumber());
 
+        BALL_LOG_WARN << "RecoveryManager::processReceiveDataChunks: before processStorageEvent()";
+
         fs->processStorageEvent(blob, true /* isPartitionSyncEvent */, source);
 
         receiveDataCtx.d_currSeqNum.primaryLeaseId() = fs->primaryLeaseId();

@@ -114,6 +114,8 @@ const unsigned int k_REQUESTED_JOURNAL_SPACE =
 //             1 journal sync point if self needs to issue another sync point
 //             in 'setActivePrimary' with old values
 
+// static bsls::Types::Uint64 k_MIN_AVAILABLE_SPACE_PERCENT = 30;
+
 /// Return a rounded (down) percentage value (range [0-100]) representing
 /// the space in use on a file with the specified `capacity`, currently
 /// having the specified `inUse` bytes used.
@@ -1011,6 +1013,8 @@ int FileStore::openInRecoveryMode(bsl::ostream&          errorDescription,
                 ? fileSetSp->d_qlistFilePosition / bmqp::Protocol::k_WORD_SIZE
                 : 0;
 
+        BALL_LOG_WARN << "RECOVERY !!!!!!!!!!!!!!!!!! issueSyncPointInternal " << fileSetSp->d_journalFilePosition;
+
         rc = issueSyncPointInternal(SyncPointType::e_REGULAR,
                                     true,
                                     &syncPoint);
@@ -1562,6 +1566,7 @@ int FileStore::recoverMessages(QueueKeyInfoMap*     queueKeyInfoMap,
             *journalOffset      = jit->recordOffset() +
                              (jit->header().recordWords() *
                               bmqp::Protocol::k_WORD_SIZE);
+            BALL_LOG_WARN << "isLastJournalRecord jit->recordOffset() " <<  jit->recordOffset() << ", *journalOffset " << *journalOffset;
         }
 
         if (RecordType::e_JOURNAL_OP == rt) {
@@ -2628,7 +2633,7 @@ int FileStore::recoverMessages(QueueKeyInfoMap*     queueKeyInfoMap,
     }
 
     BALL_LOG_INFO << partitionDesc() << "Completed second pass over the "
-                  << "journal with rc: " << rc;
+                  << "journal with rc: " << rc << " and journalOffset: " << *journalOffset;
 
     return rc_SUCCESS;
 }
@@ -3000,8 +3005,11 @@ int FileStore::rolloverIfNeeded(FileType::Enum              fileType,
     }
 
     if (!needRollover(file, currentSize, requestedSpace)) {
+        BALL_LOG_WARN << "Rollover is not needed for file [" << fileName;
         return rc_SUCCESS;  // RETURN
     }
+
+    BALL_LOG_WARN << "Rollover is needed for file: " << fileName;
 
     // TBD: make the ratio configurable
     static const bsls::Types::Uint64 k_MIN_AVAILABLE_SPACE_PERCENT = 20;
@@ -3061,6 +3069,10 @@ int FileStore::rolloverIfNeeded(FileType::Enum              fileType,
             d_config.maxJournalFileSize();
     }
 
+    BALL_LOG_WARN << out.str();
+
+    BALL_LOG_WARN << "JOURNAL availableSpacePercentJournal " << availableSpacePercentJournal << " > " << k_MIN_AVAILABLE_SPACE_PERCENT;
+
     if (availableSpacePercentJournal < k_MIN_AVAILABLE_SPACE_PERCENT) {
         // JOURNAL file can't be rolled over.
 
@@ -3113,7 +3125,9 @@ int FileStore::rolloverIfNeeded(FileType::Enum              fileType,
             rc                     = rc_QLIST_ROLLOVER_POLICY_FAILURE;
         }
     }
-
+    
+    BALL_LOG_WARN << "JOURNAL canRollover " << canRollover;
+    
     if (!canRollover) {
         BSLS_ASSERT_SAFE(FileType::e_UNDEFINED != cannotRolloverFileType);
 
@@ -3203,6 +3217,7 @@ int FileStore::rolloverIfNeeded(FileType::Enum              fileType,
                                               bmqp::Protocol::k_WORD_SIZE
                                         : 0;
 
+    BALL_LOG_WARN << "rolloverIfNeeded !!!!!!!!!!!!!!!!!! issueSyncPointInternal " << activeFileSet->d_journalFilePosition;
     rc = issueSyncPointInternal(SyncPointType::e_ROLLOVER, true, &syncPt);
     if (0 != rc) {
         return 10 * rc + rc_SYNC_POINT_FAILURE;  // RETURN
@@ -3227,6 +3242,21 @@ int FileStore::rolloverIfNeeded(FileType::Enum              fileType,
     if (0 != rc) {
         return 10 * rc + rc_SYNC_POINT_FORCE_ISSUE_FAILURE;  // RETURN
     }
+
+    BALL_LOG_WARN << partitionDesc()
+                  << "Rollover completed successfully. New data file: "
+                  << activeFileSet->d_dataFileName
+                  << ", new journal file: "
+                  << activeFileSet->d_journalFileName;
+
+
+    activeFileSet = d_fileSets[0].get();
+
+    BALL_LOG_WARN << "New J pos: " << activeFileSet->d_journalFilePosition;
+    BALL_LOG_WARN << "New data file: "
+                  << activeFileSet->d_dataFileName
+                  << ", new journal file: "
+                  << activeFileSet->d_journalFileName;
 
     return rc_SUCCESS;
 }
@@ -3534,6 +3564,7 @@ int FileStore::writeQueueOpRecord(DataStoreRecordHandle*  handle,
     }
 
     // Roll over if needed
+    BALL_LOG_WARN << "writeQueueOpRecord before rollover: " << activeFileSet->d_journalFilePosition;
     int rc = rolloverIfNeeded(FileType::e_JOURNAL,
                               activeFileSet->d_journalFile,
                               activeFileSet->d_journalFileName,
@@ -3865,13 +3896,27 @@ void FileStore::issueSyncPointDispatched(BSLA_UNUSED int partitionId)
 
     issueSyncPointInternal(SyncPointType::e_REGULAR,
                            false);  // ImmediateFlush flag
+
+    // const FileSet*                 fs    = d_fileSets[0].get();
+    // if(fs->d_journalFile.fileSize() >=
+    //                     (fs->d_journalFilePosition +
+    //                     3 * FileStoreProtocol::k_JOURNAL_RECORD_SIZE)) {
+    //     // BALL_LOG_WARN << "issueSyncPointDispatched  issueSyncPointInternal: " << fs->d_journalFilePosition;
+    
+    //     issueSyncPointInternal(SyncPointType::e_REGULAR,
+    //                        false);  // ImmediateFlush flag
+    // } else {
+    //     // BALL_LOG_WARN << "issueSyncPointDispatched  issueSyncPointInternal: " << fs->d_journalFilePosition
+    //     //               << "  NOT ENOUGH SPACE FOR SYNC POINT";
+    // }
+
 }
 
 int FileStore::issueSyncPointInternal(SyncPointType::Enum type,
                                       bool                immediateFlush,
                                       const bmqp_ctrlmsg::SyncPoint* syncPoint)
 {
-    enum { rc_SUCCESS = 0, rc_WRITE_FAILURE = -1 };
+    enum { rc_SUCCESS = 0, rc_WRITE_FAILURE = -1, rc_PARTITION_FULL = -2 };
 
     bmqp_ctrlmsg::SyncPoint        sp;
     const bmqp_ctrlmsg::SyncPoint* spptr = syncPoint;
@@ -3907,6 +3952,8 @@ int FileStore::issueSyncPointInternal(SyncPointType::Enum type,
             }
         }
 
+        BALL_LOG_WARN << "issueSyncPointInternal  NO SYNCPOINT immediateFlush: " << immediateFlush << " d_journalFilePosition: " << fs->d_journalFilePosition;
+
         sp.primaryLeaseId()       = d_primaryLeaseId;
         sp.sequenceNum()          = ++d_sequenceNum;
         sp.dataFileOffsetDwords() = fs->d_dataFilePosition /
@@ -3919,12 +3966,16 @@ int FileStore::issueSyncPointInternal(SyncPointType::Enum type,
         spptr = &sp;
     }
 
+    BALL_LOG_WARN << "issueSyncPointInternal  immediateFlush: " << immediateFlush << " d_journalFilePosition: " << fs->d_journalFilePosition;
+
     BSLS_ASSERT_SAFE(spptr);
 
     if (SyncPointType::e_REGULAR == type) {
         // Since the caller has requested a 'regular' SyncPt, journal must have
         // space for at least 2 records (this 'regular' SyncPt, and the
         // following 'rollover' SyncPt).
+
+        BALL_LOG_WARN << "issueSyncPointInternal  CHECK ASSERT:  " << fs->d_journalFilePosition;
 
         BSLS_ASSERT_SAFE(fs->d_journalFile.fileSize() >=
                          (fs->d_journalFilePosition +
@@ -3941,6 +3992,8 @@ int FileStore::issueSyncPointInternal(SyncPointType::Enum type,
         // Don't broadcast sync point because we failed to apply it to self
         return 10 * rc + rc_WRITE_FAILURE;  // RETURN
     }
+
+    BALL_LOG_WARN << "issueSyncPointInternal  AFTER WRITE:  " << fs->d_journalFilePosition;
 
     // Retrieve sync point's offset.
     bsls::Types::Uint64 syncPointJournalOffset =
@@ -3977,6 +4030,10 @@ void FileStore::processReceiptEvent(unsigned int         primaryLeaseId,
     if (!d_isPrimary || d_isStopping) {
         return;  // RETURN
     }
+
+    BALL_LOG_WARN << "processReceiptEvent: primaryLeaseId: "
+                << primaryLeaseId << ", sequenceNumber: " << sequenceNumber
+                << ", source: " << source->nodeId();
 
     const DataStoreRecordKey recordKey(sequenceNumber, primaryLeaseId);
     Unreceipted::iterator    to = d_unreceipted.find(recordKey);
@@ -4151,6 +4208,47 @@ int FileStore::writeMessageRecord(const bmqp::StorageHeader& header,
     if (0 != rc) {
         return 10 * rc + rc_WRITE_MESSAGE_RECORD_ERROR;  // RETURN
     }
+
+    // BSLS_ASSERT_SAFE(0 == dataOffset % bmqp::Protocol::k_DWORD_SIZE);
+    // BSLS_ASSERT_SAFE(dataFile.fileSize() >= (dataFilePos + messageSize));
+
+    // // Append payload to data file.
+
+    // bmqu::BlobUtil::copyToRawBufferFromIndex(dataFile.block().base() +
+    //                                              dataFilePos,
+    //                                          *event,
+    //                                          payloadBeginPos.buffer(),
+    //                                          payloadBeginPos.byte(),
+    //                                          messageSize);
+    // dataFilePos += messageSize;
+
+    // // Keep track of journal record's offset.
+
+    // bsls::Types::Uint64 recordOffset = journalPos;
+
+    // // Append message record to journal.
+
+    // if (journal.fileSize() < (journalPos + k_REQUESTED_JOURNAL_SPACE)) {
+    //     BALL_LOG_ERROR << partitionDesc()
+    //                   << "Insufficient space in journal file to write message "
+    //                      "record. Journal position: "
+    //                   << journalPos
+    //                   << ", requested space: "
+    //                   << k_REQUESTED_JOURNAL_SPACE;
+    //     return rc_UNAVAILABLE;  // RETURN
+    // }
+    // BSLS_ASSERT_SAFE(journal.fileSize() >=
+    //                  (journalPos + k_REQUESTED_JOURNAL_SPACE));
+
+    // bmqu::BlobUtil::copyToRawBufferFromIndex(
+    //     journal.block().base() + recordOffset,
+    //     *event,
+    //     recordPosition.buffer(),
+    //     recordPosition.byte(),
+    //     FileStoreProtocol::k_JOURNAL_RECORD_SIZE);
+    // journalPos += FileStoreProtocol::k_JOURNAL_RECORD_SIZE;
+
+    // OffsetPtr<const MessageRecord> msgRec(journal.block(), recordOffset);
 
     // Check if the queueKey is known.  Ideally, this check should occur at the
     // beginning of this routine (before writing the record to file), but if we
@@ -5349,6 +5447,8 @@ int FileStore::writeMessageRecord(mqbi::StorageMessageAttributes* attributes,
                                static_cast<unsigned int>(appData->length()) +
                                static_cast<unsigned int>(numBytesPadding);
 
+    BALL_LOG_WARN << "writeMessageRecord before rollover:" << activeFileSet->d_journalFilePosition;
+
     // Roll over data file if needed.
     int rc = rolloverIfNeeded(FileType::e_DATA,
                               activeFileSet->d_dataFile,
@@ -5356,13 +5456,20 @@ int FileStore::writeMessageRecord(mqbi::StorageMessageAttributes* attributes,
                               activeFileSet->d_dataFilePosition,
                               totalLength);
     if (0 != rc) {
+        BALL_LOG_WARN
+            << "Failed to rollover data file, rc: " << rc;
         return 10 * rc + rc_ROLLOVER_FAILURE;  // RETURN
     }
+    
+    BALL_LOG_WARN << "Rollover data done: " ;
 
     // Update 'activeFileSet' as it may have rolled over above.
     activeFileSet = d_fileSets[0].get();
     BSLS_ASSERT_SAFE(activeFileSet->d_dataFile.fileSize() >=
                      (activeFileSet->d_dataFilePosition + totalLength));
+
+
+    BALL_LOG_WARN << "BEFORE Rollover journal "  << activeFileSet->d_journalFilePosition << "  " << k_REQUESTED_JOURNAL_SPACE;
 
     // Roll over journal if needed.
     rc = rolloverIfNeeded(FileType::e_JOURNAL,
@@ -5371,8 +5478,12 @@ int FileStore::writeMessageRecord(mqbi::StorageMessageAttributes* attributes,
                           activeFileSet->d_journalFilePosition,
                           k_REQUESTED_JOURNAL_SPACE);
     if (0 != rc) {
+        BALL_LOG_WARN
+            << "Failed to rollover journal file, rc: " << rc;
         return 10 * rc + rc_ROLLOVER_FAILURE;  // RETURN
     }
+
+    BALL_LOG_WARN << "Rollover journal done: ";
 
     // If 'd_replicationFactor' is 1, then the message need not be persisted to
     // any replicas (i.e. eventual consistency). Therefore the writing of the
@@ -5384,6 +5495,8 @@ int FileStore::writeMessageRecord(mqbi::StorageMessageAttributes* attributes,
     // Update 'activeFileSet' as it may have rolled over above.
     activeFileSet = d_fileSets[0].get();
 
+    BALL_LOG_WARN << "New journal pos:"  << activeFileSet->d_journalFilePosition << "  New name: " << activeFileSet->d_journalFileName;
+
     // Local refs for convenience.
 
     MappedFileDescriptor& dataFile    = activeFileSet->d_dataFile;
@@ -5391,8 +5504,12 @@ int FileStore::writeMessageRecord(mqbi::StorageMessageAttributes* attributes,
     MappedFileDescriptor& journal     = activeFileSet->d_journalFile;
     bsls::Types::Uint64&  journalPos  = activeFileSet->d_journalFilePosition;
 
+    BALL_LOG_WARN << "BEFORE: " << journal.fileSize() << " >= " << (journalPos + k_REQUESTED_JOURNAL_SPACE);
+                  ;
     BSLS_ASSERT_SAFE(journal.fileSize() >=
                      (journalPos + k_REQUESTED_JOURNAL_SPACE));
+    // BSLS_ASSERT_SAFE(journal.fileSize() >=
+    //                  (journalPos + FileStoreProtocol::k_JOURNAL_RECORD_SIZE));
 
     // All good.  Take current offset in data file.
     bsls::Types::Uint64 dataOffset = dataFilePos;
@@ -5435,6 +5552,8 @@ int FileStore::writeMessageRecord(mqbi::StorageMessageAttributes* attributes,
     // Append MessageRecord to journal.
     BSLS_ASSERT_SAFE(journal.fileSize() >=
                      (journalPos + k_REQUESTED_JOURNAL_SPACE));
+    // BSLS_ASSERT_SAFE(journal.fileSize() >=
+    //                  (journalPos + FileStoreProtocol::k_JOURNAL_RECORD_SIZE));
 
     bsls::Types::Uint64      journalOffset = journalPos;
     OffsetPtr<MessageRecord> msgRec(journal.block(), journalPos);
@@ -5452,6 +5571,8 @@ int FileStore::writeMessageRecord(mqbi::StorageMessageAttributes* attributes,
         .setCompressionAlgorithmType(attributes->compressionAlgorithmType())
         .setMagic(RecordHeader::k_MAGIC);
     journalPos += FileStoreProtocol::k_JOURNAL_RECORD_SIZE;
+
+    BALL_LOG_WARN << "AFTER allocate record d_journalFilePosition: "  << activeFileSet->d_journalFilePosition << " journalPos: " << journalPos;
 
     DataStoreRecordKey key(d_sequenceNum, d_primaryLeaseId);
     DataStoreRecord    record(RecordType::e_MESSAGE, journalOffset);
@@ -5486,12 +5607,16 @@ int FileStore::writeMessageRecord(mqbi::StorageMessageAttributes* attributes,
         }
     }
 
+    BALL_LOG_WARN << "Befor replicateRecord d_journalFilePosition: "  << activeFileSet->d_journalFilePosition << " journalPos: " << journalPos;
+
     // Replicate the message.
     replicateRecord(bmqp::StorageMessageType::e_DATA,
                     flags,
                     journalOffset,
                     dataOffset,
                     totalLength);
+
+    BALL_LOG_WARN << "After replicateRecord d_journalFilePosition: "  << activeFileSet->d_journalFilePosition << " journalPos: " << journalPos;
 
     // Update outstanding JOURNAL and DATA bytes.
     activeFileSet->d_outstandingBytesJournal +=
@@ -5603,6 +5728,7 @@ int FileStore::writeQueueCreationRecord(DataStoreRecordHandle*  handle,
     }
 
     // Roll over journal if needed.
+    BALL_LOG_WARN << "writeQueueCreationRecord before rollover:" << activeFileSet->d_journalFilePosition;
 
     rc = rolloverIfNeeded(FileType::e_JOURNAL,
                           activeFileSet->d_journalFile,
@@ -5829,6 +5955,7 @@ int FileStore::writeConfirmRecord(DataStoreRecordHandle*   handle,
     // Obtain 'activeFileSet'
     FileSet* activeFileSet = d_fileSets[0].get();
 
+    BALL_LOG_WARN << "writeConfirmRecord before rollover:" << activeFileSet->d_journalFilePosition;
     // Roll over if needed
     rc = rolloverIfNeeded(FileType::e_JOURNAL,
                           activeFileSet->d_journalFile,
@@ -5900,6 +6027,8 @@ int FileStore::writeDeletionRecord(const bmqt::MessageGUID& guid,
     // Obtain 'activeFileSet'
     FileSet* activeFileSet = d_fileSets[0].get();
 
+    BALL_LOG_WARN << "writeDeletionRecord BEFORE Rollover journal "  << activeFileSet->d_journalFilePosition << "  " << k_REQUESTED_JOURNAL_SPACE;
+
     // Roll over if needed
     rc = rolloverIfNeeded(FileType::e_JOURNAL,
                           activeFileSet->d_journalFile,
@@ -5912,6 +6041,8 @@ int FileStore::writeDeletionRecord(const bmqt::MessageGUID& guid,
 
     // Update 'activeFileSet' as it may have rolled over above.
     activeFileSet = d_fileSets[0].get();
+
+    BALL_LOG_WARN << "writeDeletionRecord AFTER Rollover journal "  << activeFileSet->d_journalFilePosition << "  " << k_REQUESTED_JOURNAL_SPACE;
 
     // Local refs for convenience.
     MappedFileDescriptor& journal    = activeFileSet->d_journalFile;
@@ -6491,6 +6622,9 @@ int FileStore::issueSyncPoint()
     // no need to explicitly issue a SyncPt after rolling over, because a
     // SyncPt is issued as part of rollover step.
 
+
+    BALL_LOG_WARN << "issueSyncPoint BEFORE Rollover journal: " << fs->d_journalFilePosition;
+
     if (needRollover(fs->d_journalFile,
                      fs->d_journalFilePosition,
                      k_REQUESTED_JOURNAL_SPACE)) {
@@ -6503,6 +6637,8 @@ int FileStore::issueSyncPoint()
 
     // There is enough space in the journal to issue a 'regular' SyncPt.
 
+    BALL_LOG_WARN << "issueSyncPoint AFTER Rollover journal: " << fs->d_journalFilePosition;
+
     bmqp_ctrlmsg::SyncPoint syncPoint;
     syncPoint.primaryLeaseId()       = d_primaryLeaseId;
     syncPoint.sequenceNum()          = ++d_sequenceNum;
@@ -6513,6 +6649,7 @@ int FileStore::issueSyncPoint()
                                                  bmqp::Protocol::k_WORD_SIZE
                                            : 0;
 
+    BALL_LOG_WARN << "issueSyncPoint issueSyncPointInternal: " << fs->d_journalFilePosition;
     int rc = issueSyncPointInternal(SyncPointType::e_REGULAR,
                                     true,  // ImmediateFlush
                                     &syncPoint);
@@ -6532,6 +6669,13 @@ void FileStore::setActivePrimary(mqbnet::ClusterNode* primaryNode,
     BSLS_ASSERT_SAFE(inDispatcherThread());
     BSLS_ASSERT_SAFE(0 < primaryLeaseId);
     BSLS_ASSERT_SAFE(0 != primaryNode);
+
+    BALL_LOG_WARN << partitionDesc()
+                  << "Setting active primary node to: "
+                  << primaryNode->nodeDescription()
+                  << ", with primaryLeaseId: " << primaryLeaseId
+                  << ", current self leaseId: " << d_primaryLeaseId
+                  << ", current sequence number: " << d_sequenceNum;
 
     // Specified leaseId must be greater than or equal to 'd_primaryLeaseId'.
     if (d_primaryLeaseId > primaryLeaseId) {
@@ -6737,6 +6881,8 @@ void FileStore::setActivePrimary(mqbnet::ClusterNode* primaryNode,
 
         ++d_sequenceNum;
 
+        BALL_LOG_WARN << "setActivePrimary !!!!!!!!!!!!!!!!!! issueSyncPointInternal " << fs->d_journalFilePosition;
+        
         int rc = issueSyncPointInternal(SyncPointType::e_REGULAR,
                                         true,  // ImmediateFlush
                                         &syncPoint);
@@ -6903,9 +7049,15 @@ bool FileStore::gcExpiredMessages(const bdlt::Datetime& currentTimeUtc)
     FileSet* activeFileSet = d_fileSets[0].get();
     BSLS_ASSERT_SAFE(activeFileSet);
 
+    bool isDisableJournal = activeFileSet->d_journalFileAvailable;
     if (!activeFileSet->d_journalFileAvailable) {
+        // BALL_LOG_WARN << "gcExpiredMessages d_journalFileAvailable disabled, enable for now";
+        // activeFileSet->d_journalFileAvailable = true;
+        // k_MIN_AVAILABLE_SPACE_PERCENT = 10;
         return false;  // RETURN
     }
+    // activeFileSet->d_journalFileAvailable = true;
+    // k_MIN_AVAILABLE_SPACE_PERCENT = 10;
 
     // Go over each file-backed storage registered with this partition and
     // indicate it to GC any applicable messages.
@@ -6965,6 +7117,11 @@ bool FileStore::gcExpiredMessages(const bdlt::Datetime& currentTimeUtc)
 
         flushStorage();
     }
+
+    // Restore
+    // BALL_LOG_WARN << "gcExpiredMessages restore d_journalFileAvailable";
+    // activeFileSet->d_journalFileAvailable = isDisableJournal;
+    // k_MIN_AVAILABLE_SPACE_PERCENT = 30;
 
     return haveMore;
 }

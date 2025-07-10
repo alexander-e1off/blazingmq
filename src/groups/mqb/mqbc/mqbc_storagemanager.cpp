@@ -2579,6 +2579,8 @@ void StorageManager::do_processLiveData(const PartitionFSMArgsSp& args)
     mqbs::FileStore* fs = d_fileStores[static_cast<size_t>(partitionId)].get();
     BSLS_ASSERT_SAFE(fs && fs->isOpen());
 
+    BALL_LOG_WARN << "StorageManager::do_processLiveData: before processStorageEvent()";
+
     fs->processStorageEvent(eventData.storageEvent(),
                             false /* isPartitionSyncEvent */,
                             source);
