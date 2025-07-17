@@ -2461,6 +2461,11 @@ static void test9_print()
 
             PVV(test.d_line << ": checking 'RUMState::toAscii("
                             << "RUMState::e_" << test.d_expected << ")';");
+                            
+            if (bmqtst::TestHelperUtil::k_UBSAN && bsl::strcmp(test.d_expected, "(* UNKNOWN *)") == 0) {
+                PV("Skip line [" << test.d_line << "] for UBSan due to out of range enum value casting");
+                continue;
+            }
 
             ascii = RUMState::toAscii(test.d_value);
 

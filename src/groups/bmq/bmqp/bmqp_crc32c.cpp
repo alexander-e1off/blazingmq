@@ -951,7 +951,7 @@ static inline unsigned int crc32cUntilAligned(const unsigned char** dataPtr,
     return crc;
 }
 
-if defined(__clang__)
+#if defined(__clang__)
   __attribute__((no_sanitize("alignment")))
 #endif
 static inline unsigned int crc32c1024SseInt(const unsigned char* data,
