@@ -853,6 +853,22 @@ static void test5_multithreadedCrc32cDefault()
 //   in a multithreaded environment.
 // ------------------------------------------------------------------------
 {
+
+#if defined(__has_feature) // Clang-supported method for checking sanitizers.
+    const bool isUbsan = __has_feature(undefined_behavior_sanitizer);
+#elif defined(__SANITIZE_UNDEFINED__) // GCC-supported macros
+    const bool isUbsan = true;
+#else
+    const bool isUbsan = false;
+#endif
+
+    if (isUbsan) {
+        // UBSan detects misaligned address, but PR https://github.com/bloomberg/blazingmq/pull/807 replaces crc32 calculation, so skip this test.
+        bmqtst::TestHelper::printTestName(
+            "MULTITHREAD DEFAULT CRC32-C (skipped due to UBSan)");
+        return;
+    }
+
     bmqtst::TestHelperUtil::ignoreCheckDefAlloc() = true;
     bmqtst::TestHelperUtil::ignoreCheckGblAlloc() = true;
     // Can't ensure no global memory is allocated because

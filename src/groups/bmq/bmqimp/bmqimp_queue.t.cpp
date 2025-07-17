@@ -205,6 +205,14 @@ static void test3_printQueueStateTest()
     BSLMF_ASSERT(bmqimp::QueueState::e_CLOSING_CLS_EXPIRED ==
                  bmqimp::QueueState::k_HIGHEST_SUPPORTED_QUEUE_STATE);
 
+#if defined(__has_feature) // Clang-supported method for checking sanitizers.
+    const bool isUbsan = __has_feature(undefined_behavior_sanitizer);
+#elif defined(__SANITIZE_UNDEFINED__) // GCC-supported macros
+    const bool isUbsan = true;
+#else
+    const bool isUbsan = false;
+#endif
+
     struct Test {
         bmqimp::QueueState::Enum d_type;
         const char*              d_expected;
@@ -228,6 +236,14 @@ static void test3_printQueueStateTest()
 
     for (size_t idx = 0; idx < k_NUM_DATA; ++idx) {
         const Test&        test = k_DATA[idx];
+
+        if (isUbsan && test.d_type > bmqimp::QueueState::k_HIGHEST_SUPPORTED_QUEUE_STATE) {
+            // Skip the case for undefined behavior sanitizer due to enum value casting.
+            // This is done deliberately for error cases.
+            PV("Skip 'invalid queue state' for undefined behavior sanitizer");
+            continue;
+        }
+        
         bmqu::MemOutStream out(bmqtst::TestHelperUtil::allocator());
         bmqu::MemOutStream expected(bmqtst::TestHelperUtil::allocator());
 

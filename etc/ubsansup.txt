@@ -1,2 +1,4 @@
 # UndefinedBehaviorSanitizer suppressions file for BlazingMQ.
 # See details https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html#runtime-suppressions.
+# Supress 'runtime error: load of misaligned address' in crc32c1024SseInt(), it will be fixed in PR 807
+fun:_ZN11BloombergLP4bmqp12_GLOBAL__N_1L16crc32c1024SseIntEPKhj

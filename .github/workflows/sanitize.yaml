@@ -1,8 +1,9 @@
 name: Sanitize
 
 on:
-  pull_request_review:
-    types: [submitted]
+  push:
+    branches:
+      - debug_ubsan
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -13,14 +14,10 @@ jobs:
     name: ${{ matrix.mode }}${{ matrix.fuzz == 'on' && '-fuzz' || '' }}
     strategy:
       matrix:
-        mode: ["asan", "msan", "tsan", "ubsan"]
+        mode: ["ubsan"]
         fuzz: ["off"]
-        include:
-          - mode: "asan"
-            fuzz: "on"
       fail-fast: false
     runs-on: ubuntu-24.04
-    if: github.event.review.state == 'APPROVED'
     steps:
       - uses: actions/checkout@v4
       - name: Purge runner

@@ -782,6 +782,17 @@ struct TestHelperUtil {
 
     /// Allocator to use by the components under test.
     static bslma::Allocator*& allocator();
+
+    /// Sanitizers flags
+    /// UBSan
+#if defined(__has_feature) // Clang-supported method for checking sanitizers.
+    static const bool k_UBSAN = __has_feature(undefined_behavior_sanitizer);
+#elif defined(__SANITIZE_UNDEFINED__) // GCC-supported macros
+    static const bool k_UBSAN = true;
+#else
+    static const bool k_UBSAN = false;
+#endif
+
 };
 
 }
