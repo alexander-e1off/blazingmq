@@ -470,7 +470,8 @@ static void test2_manipulators()
     bmqtst::TestHelper::printTestName("MANIPULATORS");
 
     if (bmqtst::TestHelperUtil::k_UBSAN) {
-        PV("Skip edge/corner test for UBSan due to out of range enum value casting");
+        PV("Skip edge/corner test for UBSan due to out of range enum value "
+           "casting");
         return;
     }
 

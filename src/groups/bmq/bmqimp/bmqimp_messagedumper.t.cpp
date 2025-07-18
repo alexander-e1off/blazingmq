@@ -1278,28 +1278,33 @@ static void test4_processDumpCommand_invalidDumpMessage()
         //    well as that a non-zero error code is returned.
 
         if (bmqtst::TestHelperUtil::k_UBSAN) {
-            PVV("Skip 'invalid dump command' for UBSan due to out of range enum value casting");
-        } else {
-
+            PVV("Skip 'invalid dump command' for UBSan due to out of range "
+                "enum value casting");
+        }
+        else {
             bmqp_ctrlmsg::DumpMessages invalidDumpMessagesCommand;
             invalidDumpMessagesCommand.msgTypeToDump() =
                 static_cast<bmqp_ctrlmsg::DumpMsgType::Value>(-1);
 
-            PVV(test.d_line << ": Attempting to process an invalid dump command");
+            PVV(test.d_line
+                << ": Attempting to process an invalid dump command");
 
             // Non-zero error code is returned
-            BMQTST_ASSERT_NE(tester.processDumpCommand(invalidDumpMessagesCommand),
-                            0);
+            BMQTST_ASSERT_NE(
+                tester.processDumpCommand(invalidDumpMessagesCommand),
+                0);
 
             // No impact on the state of the MessageDumper object
-            BMQTST_ASSERT_EQ(tester.isEventDumpEnabled(bmqp::EventType::e_PUSH),
-                            test.d_isPushEnabled);
+            BMQTST_ASSERT_EQ(
+                tester.isEventDumpEnabled(bmqp::EventType::e_PUSH),
+                test.d_isPushEnabled);
             BMQTST_ASSERT_EQ(tester.isEventDumpEnabled(bmqp::EventType::e_ACK),
-                            test.d_isAckEnabled);
+                             test.d_isAckEnabled);
             BMQTST_ASSERT_EQ(tester.isEventDumpEnabled(bmqp::EventType::e_PUT),
-                            test.d_isPutEnabled);
-            BMQTST_ASSERT_EQ(tester.isEventDumpEnabled(bmqp::EventType::e_CONFIRM),
-                            test.d_isConfirmEnabled);
+                             test.d_isPutEnabled);
+            BMQTST_ASSERT_EQ(
+                tester.isEventDumpEnabled(bmqp::EventType::e_CONFIRM),
+                test.d_isConfirmEnabled);
         }
     }
 }

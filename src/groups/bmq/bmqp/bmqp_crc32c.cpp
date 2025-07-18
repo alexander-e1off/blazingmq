@@ -952,12 +952,13 @@ static inline unsigned int crc32cUntilAligned(const unsigned char** dataPtr,
 }
 
 #if defined(__clang__)
-  // UBSan detects misaligned address in this method, but PR https://github.com/bloomberg/blazingmq/pull/807 is going
-  // to replace crc32 calculation implementation, so just suppress UBSan check for now.
-  __attribute__((no_sanitize("alignment")))
+// UBSan detects misaligned address in this method, but PR
+// https://github.com/bloomberg/blazingmq/pull/807 is going to replace crc32
+// calculation implementation, so just suppress UBSan check for now.
+__attribute__((no_sanitize("alignment")))
 #endif
-static inline unsigned int crc32c1024SseInt(const unsigned char* data,
-                                            unsigned int         crc)
+static inline unsigned int
+crc32c1024SseInt(const unsigned char* data, unsigned int crc)
 {
 // Intel White Paper: Fast CRC Computation for iSCSI Polynomial Using CRC32
 // Instruction

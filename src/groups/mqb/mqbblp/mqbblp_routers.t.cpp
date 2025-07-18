@@ -187,11 +187,12 @@ static void test1_registry()
 }
 
 #if defined(__clang__)
-   // Suppress UBSan error 'applying non-zero offset to null pointer' 
-   // for '++handle' (It'is done deliberately for test simplification).
-  __attribute__((no_sanitize("undefined")))
+// Suppress UBSan error 'applying non-zero offset to null pointer'
+// for '++handle' (It'is done deliberately for test simplification).
+__attribute__((no_sanitize("undefined")))
 #endif
-static void test2_priority()
+static void
+test2_priority()
 // ------------------------------------------------------------------------
 // Testing mqbblp::Routers::Expressions, mqbblp::Routers::Consumers, and
 // mqbblp::Routers::Priority combination for memory leaks.
@@ -445,11 +446,12 @@ static void test3_parse()
 }
 
 #if defined(__clang__)
-   // Suppress UBSan error 'applying non-zero offset to null pointer'
-   // for '++handle' (It'is done deliberately for test simplification).
-  __attribute__((no_sanitize("undefined")))
+// Suppress UBSan error 'applying non-zero offset to null pointer'
+// for '++handle' (It'is done deliberately for test simplification).
+__attribute__((no_sanitize("undefined")))
 #endif
-static void test4_generate()
+static void
+test4_generate()
 // ------------------------------------------------------------------------
 //  Testing mqbblp::Routers::AppContext::generate method
 //

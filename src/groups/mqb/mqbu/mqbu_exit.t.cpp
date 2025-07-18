@@ -133,8 +133,11 @@ static void test1_exitCode_toAscii()
         PVV(test.d_line << ": Testing: toAscii(" << test.d_value
                         << ") == " << test.d_expected);
 
-        if (bmqtst::TestHelperUtil::k_UBSAN && bsl::strcmp(test.d_expected, "(* UNKNOWN *)") == 0) {
-            PVV("Skip line [" << test.d_line << "] for UBSan due to out of range enum value casting");
+        if (bmqtst::TestHelperUtil::k_UBSAN &&
+            bsl::strcmp(test.d_expected, "(* UNKNOWN *)") == 0) {
+            PVV("Skip line ["
+                << test.d_line
+                << "] for UBSan due to out of range enum value casting");
             continue;
         }
 
@@ -253,8 +256,11 @@ static void test3_exitCode_print()
         PVV(test.d_line << ": Testing: print(" << test.d_value
                         << ") == " << test.d_expected);
 
-        if (bmqtst::TestHelperUtil::k_UBSAN && bsl::strcmp(test.d_expected, "(* UNKNOWN *)") == 0) {
-            PVV("Skip line [" << test.d_line << "] for UBSan due to out of range enum value casting");
+        if (bmqtst::TestHelperUtil::k_UBSAN &&
+            bsl::strcmp(test.d_expected, "(* UNKNOWN *)") == 0) {
+            PVV("Skip line ["
+                << test.d_line
+                << "] for UBSan due to out of range enum value casting");
             continue;
         }
 
