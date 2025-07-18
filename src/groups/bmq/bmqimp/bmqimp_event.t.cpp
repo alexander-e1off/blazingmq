@@ -1076,18 +1076,8 @@ static void test7_printing()
         out.reset();
     }
 
-#if defined(__has_feature) // Clang-supported method for checking sanitizers.
-    const bool skipCheck = __has_feature(undefined_behavior_sanitizer);
-#elif defined(__SANITIZE_UNDEFINED__) // GCC-supported macros
-    const bool skipCheck = true;
-#else
-    const bool skipCheck = false;
-#endif
-
-    if (skipCheck) {
-        // Skip the case for undefined behavior sanitizer due to enum value casting.
-        // This is done deliberately for error cases.
-        PV("Skip 'Bad enum value' for undefined behavior sanitizer");
+    if (bmqtst::TestHelperUtil::k_UBSAN) {
+        PV("Skip 'Bad enum value' for UBSan due to out of range enum value casting");
     } else
     {
         PV("Bad enum value test");

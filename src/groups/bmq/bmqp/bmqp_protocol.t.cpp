@@ -1129,9 +1129,7 @@ static void test3_flagUtils()
                  currFlagVal = currFlagVal << 1) {
 
                 if (bmqtst::TestHelperUtil::k_UBSAN && currFlagVal > bmqp::PutHeaderFlags::k_HIGHEST_PUT_FLAG) {
-                    // Skip the case for undefined behavior sanitizer due to enum value casting.
-                    // This is done deliberately for error cases.
-                    PVV("Skip 'invalid flag' for undefined behavior sanitizer");
+                    PVV("Skip line [" << test.d_line << "] for UBSan due to out of range enum value casting");
                     continue;
                 }
 
@@ -1204,10 +1202,8 @@ static void test3_flagUtils()
                  currFlagVal < (1 << bmqp::PushHeaderFlags::k_VALUE_COUNT);
                  currFlagVal = currFlagVal << 1) {
 
-                if (bmqtst::TestHelperUtil::k_UBSAN && currFlagVal > bmqp::PutHeaderFlags::k_HIGHEST_PUT_FLAG) {
-                    // Skip the case for undefined behavior sanitizer due to enum value casting.
-                    // This is done deliberately for error cases.
-                    PVV("Skip 'invalid flag' for undefined behavior sanitizer");
+                if (bmqtst::TestHelperUtil::k_UBSAN && currFlagVal > bmqp::PushHeaderFlags::k_HIGHEST_PUSH_FLAG) {
+                    PVV("Skip line [" << test.d_line << "] for UBSan due to out of range enum value casting");
                     continue;
                 }
 
@@ -1285,13 +1281,11 @@ static void test3_flagUtils()
                  currFlagVal < (1 << bmqp::StorageHeaderFlags::k_VALUE_COUNT);
                  currFlagVal = currFlagVal << 1) {
 
-                if (bmqtst::TestHelperUtil::k_UBSAN && currFlagVal > bmqp::PutHeaderFlags::k_HIGHEST_PUT_FLAG) {
-                    // Skip the case for undefined behavior sanitizer due to enum value casting.
-                    // This is done deliberately for error cases.
-                    PVV("Skip 'invalid flag' for undefined behavior sanitizer");
-                    continue;                    
+                if (bmqtst::TestHelperUtil::k_UBSAN && currFlagVal > bmqp::StorageHeaderFlags::k_HIGHEST_STORAGE_FLAG) {
+                    PVV("Skip line [" << test.d_line << "] for UBSan due to out of range enum value casting");
+                    continue;
                 }
-                    
+
                 bmqp::StorageHeaderFlags::Enum currFlag =
                     static_cast<bmqp::StorageHeaderFlags::Enum>(currFlagVal);
 
@@ -1334,10 +1328,8 @@ static void printEnumHelper(ARRAY (&data)[SIZE])
 
         PVVV("Line [" << test.d_line << "]");
 
-        if (bmqtst::TestHelperUtil::k_UBSAN && test.d_type < 0) {
-            // Skip the case for undefined behavior sanitizer due to enum value casting.
-            // This is done deliberately for error cases.
-            PVV("Skip 'invalid enum' for undefined behavior sanitizer");
+        if (bmqtst::TestHelperUtil::k_UBSAN && bsl::strcmp(test.d_expected, "(* UNKNOWN *)") == 0) {
+            PVVV("Skip line [" << test.d_line << "] for UBSan due to out of range enum value casting");
             continue;
         }
 

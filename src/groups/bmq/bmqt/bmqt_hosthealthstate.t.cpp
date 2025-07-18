@@ -87,7 +87,7 @@ static void test2_printTest()
         const Test&        test = k_DATA[idx];
 
         if (bmqtst::TestHelperUtil::k_UBSAN && bsl::strcmp(test.d_expected, "(* UNKNOWN *)") == 0) {
-            PVV("Skip value [" << test.d_type << "] for UBSan due to out of range enum value casting");
+            PV("Skip value [" << test.d_type << "] for UBSan due to out of range enum value casting");
             continue;
         }
         

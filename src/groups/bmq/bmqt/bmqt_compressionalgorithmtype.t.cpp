@@ -54,7 +54,7 @@ static void printEnumHelper(ARRAY (&data)[SIZE])
         PVVV("Line [" << test.d_line << "]");
 
         if (bmqtst::TestHelperUtil::k_UBSAN && bsl::strcmp(test.d_expected, "(* UNKNOWN *)") == 0) {
-            PV("Skip line [" << test.d_line << "] for UBSan due to out of range enum value casting");
+            PVVV("Skip line [" << test.d_line << "] for UBSan due to out of range enum value casting");
             continue;
         }
 

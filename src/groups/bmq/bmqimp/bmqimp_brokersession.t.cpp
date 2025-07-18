@@ -80,15 +80,6 @@ namespace {
 // CONSTANTS
 const char k_URI[] = "bmq://ts.trades.myapp/my.queue?id=my.app";
 
-// Flag to skip some checks in the test when running with UBSan
-#if defined(__has_feature) // Clang-supported method for checking sanitizers.
-    const bool k_SKIP_CHECK = __has_feature(undefined_behavior_sanitizer);
-#elif defined(__SANITIZE_UNDEFINED__) // GCC-supported macros
-    const bool k_SKIP_CHECK = true;
-#else
-    const bool k_SKIP_CHECK = false;    
-#endif
-
 /// Struct to initialize system time component
 struct TestClock {
     // DATA
@@ -3834,10 +3825,8 @@ static void queueOpenCloseAsync(bsls::Types::Uint64 queueFlags)
 
     int rc;
 
-    if (k_SKIP_CHECK) {
-        // Skip the case for undefined behavior sanitizer due to enum value casting.
-        // This is done deliberately for error cases.
-        PVV_SAFE("Skip 'Close unopened queue async' for undefined behavior sanitizer");
+    if (bmqtst::TestHelperUtil::k_UBSAN) {
+        PVV_SAFE("Skip 'Close unopened queue async' for UBSan due to out of range enum value casting");
     } else {
         PVV_SAFE("Close unopened queue async");
         rc = obj.session().closeQueueAsync(pQueue, timeout);
@@ -5056,10 +5045,8 @@ static void queueCloseSync(bsls::Types::Uint64 queueFlags)
     BMQTST_ASSERT_EQ(pQueue->state(), bmqimp::QueueState::e_CLOSED);
     BMQTST_ASSERT_EQ(pQueue->isValid(), false);
 
-    if (k_SKIP_CHECK) {
-        // Skip the case for undefined behavior sanitizer due to enum value casting.
-        // This is done deliberately for error cases.
-        PVV_SAFE("Skip 'close the queue again' for undefined behavior sanitizer");
+    if (bmqtst::TestHelperUtil::k_UBSAN) {
+        PVV_SAFE("Skip 'close the queue again' for UBSan due to out of range enum value casting");
     } else {
         PVV_SAFE("Step 5. Try to close the queue again");
         rc = obj.session().closeQueue(pQueue, timeout);
@@ -5898,10 +5885,8 @@ static void test25_sessionFsmTable()
         obj.onStartTimeout();
     }
 
-    if (k_SKIP_CHECK) {
-        // Skip the case for undefined behavior sanitizer due to enum value casting.
-        // This is done deliberately for error cases.
-        PVV_SAFE("Skip 'Start failure' for undefined behavior sanitizer");
+    if (bmqtst::TestHelperUtil::k_UBSAN) {
+        PVV_SAFE("Skip 'Start failure' for UBSan due to out of range enum value casting");
     } 
     else
     {
@@ -6594,10 +6579,8 @@ static void queueDoubleOpenUri(bsls::Types::Uint64 queueFlags)
     PVV_SAFE("Step 2. Open the first  queue");
     obj.openQueue(pQueue1, timeout);
 
-    if (k_SKIP_CHECK) {
-        // Skip the case for undefined behavior sanitizer due to enum value casting.
-        // This is done deliberately for error cases.
-        PVV_SAFE("Skip 'Step 3' for undefined behavior sanitizer");
+    if (bmqtst::TestHelperUtil::k_UBSAN) {
+        PVV_SAFE("Skip 'Step 3' for UBSan due to out of range enum value casting");
     } 
     else {
         PVV_SAFE("Step 3. Open the second queue and check the error");
@@ -6691,10 +6674,8 @@ static void queueDoubleOpenCorrelationId(bsls::Types::Uint64 queueFlags)
     PVV_SAFE("Step 2. Open the first  queue");
     obj.openQueue(pQueue1, timeout);
 
-    if (k_SKIP_CHECK) {
-        // Skip the case for undefined behavior sanitizer due to enum value casting.
-        // This is done deliberately for error cases.
-        PVV_SAFE("Skip 'Step 3' for undefined behavior sanitizer");
+    if (bmqtst::TestHelperUtil::k_UBSAN) {
+        PVV_SAFE("Skip 'Step 3' for UBSan due to out of range enum value casting");
     } 
     else {
         PVV_SAFE("Step 3. Open the second queue and check the error");

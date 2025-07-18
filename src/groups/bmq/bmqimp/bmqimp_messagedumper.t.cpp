@@ -1273,22 +1273,12 @@ static void test4_processDumpCommand_invalidDumpMessage()
         BMQTST_ASSERT_EQ(tester.isEventDumpEnabled(bmqp::EventType::e_CONFIRM),
                          test.d_isConfirmEnabled);
 
-#if defined(__has_feature) // Clang-supported method for checking sanitizers.
-    const bool skipCheck = __has_feature(undefined_behavior_sanitizer);
-#elif defined(__SANITIZE_UNDEFINED__) // GCC-supported macros
-    const bool skipCheck = true;
-#else
-    const bool skipCheck = false;
-#endif
-
         // b. Attempt to process further an *invalid* dump command and verify
         //    that it does not impact the state of the MessageDumper object as
         //    well as that a non-zero error code is returned.
 
-        if (skipCheck) {
-            // Skip the case for undefined behavior sanitizer due to enum value casting.
-            // This is done deliberately for error cases.
-            PVV("Skip 'invalid dump command' for undefined behavior sanitizer");
+        if (bmqtst::TestHelperUtil::k_UBSAN) {
+            PVV("Skip 'invalid dump command' for UBSan due to out of range enum value casting");
         } else {
 
             bmqp_ctrlmsg::DumpMessages invalidDumpMessagesCommand;

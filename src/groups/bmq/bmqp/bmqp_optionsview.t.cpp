@@ -1001,9 +1001,7 @@ void test4_invalidOptionsArea()
 
 
     if (bmqtst::TestHelperUtil::k_UBSAN) {
-        // Skip the case for undefined behavior sanitizer due to enum value casting.
-        // This is done deliberately for error cases.
-        PV("Skip 'OPTION HEADER WITH UNSUPPORTED TYPES' for undefined behavior sanitizer");
+        PV("Skip 'OPTION HEADER WITH UNSUPPORTED TYPES' for UBSan due to out of range enum value casting");
     }
     else
     {
