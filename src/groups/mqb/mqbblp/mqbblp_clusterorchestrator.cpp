@@ -840,6 +840,16 @@ void ClusterOrchestrator::processClusterStateFSMMessage(
                     .choice()
                     .isClusterStateFSMMessageValue());
 
+    if (bmqp_ctrlmsg::NodeStatus::E_STOPPING ==
+        d_clusterData_p->membership().selfNodeStatus()) {
+        BALL_LOG_INFO << d_clusterData_p->identity().description()
+                      << ": Not processing cluster state FSM message : "
+                      << message << " from " << source->nodeDescription()
+                      << " since self is stopping";
+
+        return;  // RETURN
+    }
+
     typedef bmqp_ctrlmsg::ClusterStateFSMMessageChoice MsgChoice;  // shortcut
     switch (message.choice()
                 .clusterMessage()
@@ -1539,34 +1549,6 @@ void ClusterOrchestrator::processPrimaryStatusAdvisory(
             return;  // RETURN
         }
     }
-    else if (!d_stateManager_mp->isFirstLeaderAdvisory()) {
-        // Self node has heard from the leader at least once.  Perform
-        // additional validations.
-
-        if (pinfo.primaryNode() != source) {
-            BALL_LOG_ERROR << d_clusterData_p->identity().description()
-                           << ": Partition [" << primaryAdv.partitionId()
-                           << "]: received primary status advisory: "
-                           << primaryAdv
-                           << " from: " << source->nodeDescription()
-                           << ", but current primary is: "
-                           << (pinfo.primaryNode()
-                                   ? pinfo.primaryNode()->nodeDescription()
-                                   : "** null **");
-            return;  // RETURN
-        }
-
-        if (pinfo.primaryLeaseId() != primaryAdv.primaryLeaseId()) {
-            BALL_LOG_ERROR << d_clusterData_p->identity().description()
-                           << ": Partition [" << primaryAdv.partitionId()
-                           << "]: received primary status advisory: "
-                           << primaryAdv << " from perceived primary: "
-                           << source->nodeDescription()
-                           << ", but with different leaseId. Self perceived "
-                           << "leaseId: " << pinfo.primaryLeaseId();
-            return;  // RETURN
-        }
-    }
     else {
         // TODO Remove `mqbi::ClusterStateManager::setPrimary()` when this code
         // is removed.
@@ -1577,22 +1559,34 @@ void ClusterOrchestrator::processPrimaryStatusAdvisory(
         // and hasn't heard from the leader, but various primary nodes have
         // sent their status advisory messages to it.
 
-        // Note that we cannot use self node's status in place of
-        // 'isFirstLeaderAdvisory', because a node may transition from
-        // STARTING to AVAILABLE, but still may not have heard from the leader.
-
-        // Also note that self node could be receiving the 2nd primary status
-        // advisory from the 'source' (recall that a primary sends status
-        // advisory when it sees a new node transitioning to STARTING and again
-        // when transitioning to AVAILABLE), but self node may not have yet
-        // heard from the leader.  So if self's cluster state is already
-        // up-to-date with this primary's status, we don't assert certain
-        // things.
-
         // TBD: Since we are updating cluster state based on a message from the
         // non-leader node, we are breaking the contract that only leader
         // issues writes to the cluster state.  This needs to be reviewed.  See
         // 'StorageMgr::processPrimaryStatusAdvisoryDispatched' as well.
+
+        if (pinfo.primaryNode()) {
+            if (pinfo.primaryNode() != source) {
+                BALL_LOG_ERROR
+                    << d_clusterData_p->identity().description()
+                    << ": Partition [" << primaryAdv.partitionId()
+                    << "]: received primary status advisory: " << primaryAdv
+                    << " from: " << source->nodeDescription()
+                    << ", but current primary is: "
+                    << pinfo.primaryNode()->nodeDescription();
+                return;  // RETURN
+            }
+
+            if (pinfo.primaryLeaseId() != primaryAdv.primaryLeaseId()) {
+                BALL_LOG_ERROR
+                    << d_clusterData_p->identity().description()
+                    << ": Partition [" << primaryAdv.partitionId()
+                    << "]: received primary status advisory: " << primaryAdv
+                    << " from perceived primary: " << source->nodeDescription()
+                    << ", but with different leaseId. Self perceived "
+                    << "leaseId: " << pinfo.primaryLeaseId();
+                return;  // RETURN
+            }
+        }
 
         BALL_LOG_WARN << d_clusterData_p->identity().description()
                       << " Partition [" << primaryAdv.partitionId()
@@ -1795,7 +1789,7 @@ void ClusterOrchestrator::validateClusterStateLedger()
     d_stateManager_mp->validateClusterStateLedger();
 }
 
-void ClusterOrchestrator::updateAppIds(
+mqbi::ClusterErrorCode::Enum ClusterOrchestrator::updateAppIds(
     const bsl::shared_ptr<const bsl::vector<bsl::string> >& added,
     const bsl::shared_ptr<const bsl::vector<bsl::string> >& removed,
     const bsl::string&                                      domainName)
@@ -1805,10 +1799,10 @@ void ClusterOrchestrator::updateAppIds(
     // PRECONDITIONS
     BSLS_ASSERT_SAFE(dispatcher()->inDispatcherThread(d_cluster_p));
 
-    d_stateManager_mp->updateAppIds(*added,
-                                    *removed,
-                                    domainName,
-                                    "");  // for all queues
+    return d_stateManager_mp->updateAppIds(*added,
+                                           *removed,
+                                           domainName,
+                                           "");  // for all queues
 }
 
 void ClusterOrchestrator::onPartitionPrimaryStatus(int          partitionId,

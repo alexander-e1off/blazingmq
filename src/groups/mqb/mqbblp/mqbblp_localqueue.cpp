@@ -162,17 +162,17 @@ int LocalQueue::configure(bsl::ostream& errorDescription, bool isReconfigure)
                                 d_allocator_p);
     }
 
+    // Inform the storage about the queue.
+    d_state_p->storageManager()->setQueueRaw(queue,
+                                             d_state_p->uri(),
+                                             d_state_p->partitionId());
+
     rc = d_queueEngine_mp->configure(errorDescription, isReconfigure);
     if (rc != 0) {
         return 10 * rc + rc_QUEUE_ENGINE_CFG_FAILURE;  // RETURN
     }
 
     d_haveStrongConsistency = domainCfg.consistency().isStrongValue();
-
-    // Inform the storage about the queue.
-    d_state_p->storageManager()->setQueueRaw(queue,
-                                             d_state_p->uri(),
-                                             d_state_p->partitionId());
 
     d_state_p->stats()
         ->onEvent<mqbstat::QueueStatsDomain::EventType::e_CHANGE_ROLE>(
@@ -600,8 +600,7 @@ void LocalQueue::deliverIfNeeded()
 {
     // Now that storage messages have been flushed, notify the engine (and thus
     // any peer or downstream client) to deliver next applicable message.
-    d_queueEngine_mp->afterNewMessage(bmqt::MessageGUID(),
-                                      static_cast<mqbi::QueueHandle*>(0));
+    d_queueEngine_mp->afterNewMessage();
 }
 
 void LocalQueue::confirmMessage(const bmqt::MessageGUID& msgGUID,

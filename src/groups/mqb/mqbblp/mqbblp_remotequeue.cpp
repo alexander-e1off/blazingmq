@@ -116,6 +116,7 @@ int RemoteQueue::configureAsProxy(bsl::ostream& errorDescription,
     storageSp.load(new (*d_allocator_p) mqbs::InMemoryStorage(
                        d_state_p->uri(),
                        d_state_p->key(),
+                       d_state_p->domain(),
                        mqbs::DataStore::k_INVALID_PARTITION_ID,
                        domainCfg,
                        d_state_p->domain()->capacityMeter(),
@@ -874,8 +875,7 @@ void RemoteQueue::flush()
         d_state_p->storage()->gcHistory(now);
     }
     if (d_queueEngine_mp) {
-        const bmqt::MessageGUID dummy;
-        d_queueEngine_mp->afterNewMessage(dummy, 0);
+        d_queueEngine_mp->afterNewMessage();
     }
 }
 

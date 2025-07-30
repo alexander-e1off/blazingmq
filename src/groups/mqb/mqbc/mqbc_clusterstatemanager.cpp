@@ -1489,9 +1489,8 @@ void ClusterStateManager::assignPartitions(
                                   true);  // isCSLMode
 }
 
-ClusterStateManager::QueueAssignmentResult::Enum
-ClusterStateManager::assignQueue(const bmqt::Uri&      uri,
-                                 bmqp_ctrlmsg::Status* status)
+bool ClusterStateManager::assignQueue(const bmqt::Uri&      uri,
+                                      bmqp_ctrlmsg::Status* status)
 {
     // executed by the cluster *DISPATCHER* thread
     // PRECONDITIONS
@@ -1558,7 +1557,6 @@ void ClusterStateManager::sendClusterState(
 
     mqbc::ClusterUtil::sendClusterState(d_clusterData_p,
                                         d_clusterStateLedger_mp.get(),
-                                        0,  // storageManager
                                         *d_state_p,
                                         sendPartitionPrimaryInfo,
                                         sendQueuesInfo,
@@ -1566,10 +1564,11 @@ void ClusterStateManager::sendClusterState(
                                         partitions);
 }
 
-void ClusterStateManager::updateAppIds(const bsl::vector<bsl::string>& added,
-                                       const bsl::vector<bsl::string>& removed,
-                                       const bsl::string& domainName,
-                                       const bsl::string& uri)
+mqbi::ClusterErrorCode::Enum
+ClusterStateManager::updateAppIds(const bsl::vector<bsl::string>& added,
+                                  const bsl::vector<bsl::string>& removed,
+                                  const bsl::string&              domainName,
+                                  const bsl::string&              uri)
 {
     // executed by the cluster *DISPATCHER* thread
 
@@ -1578,14 +1577,14 @@ void ClusterStateManager::updateAppIds(const bsl::vector<bsl::string>& added,
     BSLS_ASSERT_SAFE(!d_cluster_p->isRemote());
     BSLS_ASSERT_SAFE(!domainName.empty());
 
-    mqbc::ClusterUtil::updateAppIds(d_clusterData_p,
-                                    d_clusterStateLedger_mp.get(),
-                                    *d_state_p,
-                                    added,
-                                    removed,
-                                    domainName,
-                                    uri,
-                                    d_allocator_p);
+    return mqbc::ClusterUtil::updateAppIds(d_clusterData_p,
+                                           d_clusterStateLedger_mp.get(),
+                                           *d_state_p,
+                                           added,
+                                           removed,
+                                           domainName,
+                                           uri,
+                                           d_allocator_p);
 }
 
 void ClusterStateManager::initiateLeaderSync(BSLA_UNUSED bool wait)

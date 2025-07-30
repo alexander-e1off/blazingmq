@@ -151,8 +151,6 @@ class ClusterStateManager BSLS_KEYWORD_FINAL
 
     mqbi::StorageManager* d_storageManager_p;
 
-    bool d_isFirstLeaderAdvisory;
-
     AfterPartitionPrimaryAssignmentCb d_afterPartitionPrimaryAssignmentCb;
 
   private:
@@ -337,17 +335,15 @@ class ClusterStateManager BSLS_KEYWORD_FINAL
     /// Perform the actual assignment of the queue represented by the
     /// specified `uri` for a cluster member queue, that is assign it a
     /// queue key, a partition id, and some appIds; and applying the
-    /// corresponding queue assignment advisory to CSL.  Return a value
-    /// indicating whether the assignment was successful or was definitively
-    /// rejected, and populate the optionally specified `status` with a
-    /// human readable error code and string in case of failure.  This
-    /// method is called only on the leader node.
+    /// corresponding queue assignment advisory to CSL.  Return `false` in the
+    /// case of permanent failure when need to reject the assignment.  Return
+    /// `true` if the assignment is successful or can be retried.
+    /// This method is called only on the leader node.
     ///
     /// THREAD: This method is invoked in the associated cluster's
     ///         dispatcher thread.
-    QueueAssignmentResult::Enum
-    assignQueue(const bmqt::Uri&      uri,
-                bmqp_ctrlmsg::Status* status = 0) BSLS_KEYWORD_OVERRIDE;
+    bool assignQueue(const bmqt::Uri&      uri,
+                     bmqp_ctrlmsg::Status* status) BSLS_KEYWORD_OVERRIDE;
 
     /// Register a queue info for the queue with the specified `advisory`.
     /// If the specified `forceUpdate` flag is true, update queue info even if
@@ -388,13 +384,15 @@ class ClusterStateManager BSLS_KEYWORD_FINAL
 
     /// Unregister the specified 'removed' and register the specified `added`
     /// for the specified  `domainName` and optionally specified `uri`.
+    /// Return `0` on success.
     ///
     /// THREAD: This method is invoked in the associated cluster's
     ///         dispatcher thread.
-    void updateAppIds(const bsl::vector<bsl::string>& added,
-                      const bsl::vector<bsl::string>& removed,
-                      const bsl::string&              domainName,
-                      const bsl::string& uri) BSLS_KEYWORD_OVERRIDE;
+    mqbi::ClusterErrorCode::Enum
+    updateAppIds(const bsl::vector<bsl::string>& added,
+                 const bsl::vector<bsl::string>& removed,
+                 const bsl::string&              domainName,
+                 const bsl::string&              uri) BSLS_KEYWORD_OVERRIDE;
 
     /// Invoked when a newly elected (i.e. passive) leader node initiates a
     /// sync with followers before transitioning to active leader.
@@ -488,9 +486,6 @@ class ClusterStateManager BSLS_KEYWORD_FINAL
     void onNodeStopped() BSLS_KEYWORD_OVERRIDE;
 
     // ACCESSORS
-    //   (virtual: mqbi::ClusterStateManager)
-    bool isFirstLeaderAdvisory() const BSLS_KEYWORD_OVERRIDE;
-
     /// Return the cluster state managed by this instacne.
     const mqbc::ClusterState* clusterState() const BSLS_KEYWORD_OVERRIDE;
 
@@ -552,12 +547,6 @@ inline void ClusterStateManager::setAfterPartitionPrimaryAssignmentCb(
 }
 
 // ACCESSORS
-//   (virtual: mqbi::ClusterStateManager)
-inline bool ClusterStateManager::isFirstLeaderAdvisory() const
-{
-    return d_isFirstLeaderAdvisory;
-}
-
 inline const mqbc::ClusterState* ClusterStateManager::clusterState() const
 {
     return d_state_p;

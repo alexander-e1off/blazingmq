@@ -469,6 +469,7 @@ struct Tester {
             }
         }
 
+        BSLS_ASSERT_OPT(highestLSNFollower);
         BSLS_ASSERT_OPT(highestLSNFollower->nodeId() !=
                         d_cluster_mp->netCluster().selfNodeId());
 
@@ -2599,7 +2600,6 @@ int main(int argc, char* argv[])
     TEST_PROLOG(bmqtst::TestHelper::e_DEFAULT);
 
     bmqp::ProtocolUtil::initialize(bmqtst::TestHelperUtil::allocator());
-    bmqp::Crc32c::initialize();
 
     switch (_testCase) {
     case 0:

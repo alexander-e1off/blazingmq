@@ -493,6 +493,8 @@ struct Tester {
             }
         }
 
+        BSLS_ASSERT_OPT(blob);
+
         bdlbb::Blob record(d_cluster_mp->bufferFactory(),
                            bmqtst::TestHelperUtil::allocator());
         bdlbb::BlobUtil::append(&record, *blob, sizeof(bmqp::EventHeader));
@@ -2021,7 +2023,6 @@ int main(int argc, char* argv[])
 
     bmqsys::Time::initialize(bmqtst::TestHelperUtil::allocator());
     bmqp::ProtocolUtil::initialize(bmqtst::TestHelperUtil::allocator());
-    bmqp::Crc32c::initialize();
     bmqt::UriParser::initialize(bmqtst::TestHelperUtil::allocator());
 
     switch (_testCase) {

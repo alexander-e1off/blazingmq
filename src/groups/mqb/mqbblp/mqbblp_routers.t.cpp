@@ -26,6 +26,8 @@
 
 // MQB
 #include <mqbcfg_brokerconfig.h>
+#include <mqbmock_cluster.h>
+#include <mqbmock_domain.h>
 #include <mqbmock_queue.h>
 #include <mqbmock_queuehandle.h>
 #include <mqbs_inmemorystorage.h>
@@ -51,44 +53,49 @@ namespace BloombergLP {
 
 /// Mechanism to mock QueueHandle and StorageIterator for Router testing.
 struct TestStorage {
+    bslma::Allocator* d_allocator_p;
+
     unsigned int                             d_subQueueId;
     mqbconfm::Domain                         d_domainCfg;
     mqbu::CapacityMeter                      d_capacityMeter;
     mqbu::StorageKey                         d_storageKey;
+    mqbmock::Cluster                         d_cluster;
+    mqbmock::Domain                          d_domain;
     mqbs::InMemoryStorage                    d_storage;
     bslma::ManagedPtr<mqbi::StorageIterator> d_iterator;
     bdlbb::PooledBlobBufferFactory           d_bufferFactory;
 
     bsl::shared_ptr<mqbmock::Queue> d_queue_sp;
 
-    bslma::Allocator* d_allocator_p;
-
     TestStorage(unsigned int subQueueId, bslma::Allocator* allocator)
-    : d_subQueueId(subQueueId)
-    , d_domainCfg(allocator)
-    , d_capacityMeter("cm", allocator)
+    : d_allocator_p(bslma::Default::allocator(allocator))
+    , d_subQueueId(subQueueId)
+    , d_domainCfg(d_allocator_p)
+    , d_capacityMeter(bsl::string("cm", d_allocator_p), 0, d_allocator_p)
     , d_storageKey(d_subQueueId)
-    , d_storage(bmqt::Uri("uri", allocator),
+    , d_cluster(d_allocator_p)
+    , d_domain(&d_cluster,
+               d_allocator_p)  // Use domain only to hold mqbstat::StatContext
+    , d_storage(bmqt::Uri("uri", d_allocator_p),
                 d_storageKey,
+                &d_domain,
                 1,
                 d_domainCfg,
                 &d_capacityMeter,
-                allocator)
+                d_allocator_p)
     , d_iterator(d_storage.getIterator(mqbu::StorageKey()))
-    , d_bufferFactory(32, allocator)
-    , d_queue_sp(new(*allocator) mqbmock::Queue(0, allocator), allocator)
-    , d_allocator_p(allocator)
-
+    , d_bufferFactory(32, d_allocator_p)
+    , d_queue_sp(
+          bsl::allocate_shared<mqbmock::Queue>(d_allocator_p,
+                                               static_cast<mqbi::Domain*>(0)))
     {
         bmqt::MessageGUID guid;
         guid.fromHex("00000000000000000000000000000001");
         mqbi::StorageMessageAttributes     attributes;
-        const bsl::shared_ptr<bdlbb::Blob> appData(
-            new (*allocator) bdlbb::Blob(&d_bufferFactory, allocator),
-            allocator);
-        const bsl::shared_ptr<bdlbb::Blob> options(
-            new (*allocator) bdlbb::Blob(&d_bufferFactory, allocator),
-            allocator);
+        const bsl::shared_ptr<bdlbb::Blob> appData =
+            bsl::allocate_shared<bdlbb::Blob>(d_allocator_p, &d_bufferFactory);
+        const bsl::shared_ptr<bdlbb::Blob> options =
+            bsl::allocate_shared<bdlbb::Blob>(d_allocator_p, &d_bufferFactory);
         // TODO: put data for Expression evaluation
 
         mqbi::StorageResult::Enum rc =
@@ -101,10 +108,9 @@ struct TestStorage {
 
     mqbmock::QueueHandle getHandle()
     {
-        bsl::shared_ptr<mqbi::QueueHandleRequesterContext> clientContext(
-            new (*d_allocator_p)
-                mqbi::QueueHandleRequesterContext(d_allocator_p),
-            d_allocator_p);
+        bsl::shared_ptr<mqbi::QueueHandleRequesterContext> clientContext =
+            bsl::allocate_shared<mqbi::QueueHandleRequesterContext>(
+                d_allocator_p);
         bmqp_ctrlmsg::QueueHandleParameters handleParameters(d_allocator_p);
 
         return mqbmock::QueueHandle(d_queue_sp,
@@ -204,14 +210,14 @@ static void test2_priority()
         bmqp_ctrlmsg::Expression(bmqtst::TestHelperUtil::allocator()),
         mqbblp::Routers::Expression());
 
-    mqbi::QueueHandle* handle = 0;
-    ++handle;
+    bsls::ObjectBuffer<mqbmock::QueueHandle> handle;
+
     const bmqp_ctrlmsg::StreamParameters streamParameters(
         bmqtst::TestHelperUtil::allocator());
     mqbblp::Routers::Consumers consumers(bmqtst::TestHelperUtil::allocator());
     const unsigned int         subQueueId           = 13;
     mqbblp::Routers::Consumers::SharedItem consumer = consumers.record(
-        handle,
+        handle.address(),
         mqbblp::Routers::Consumer(streamParameters,
                                   subQueueId,
                                   bmqtst::TestHelperUtil::allocator()));
@@ -219,7 +225,7 @@ static void test2_priority()
     mqbblp::Routers::Priority priority(bmqtst::TestHelperUtil::allocator());
 
     priority.d_subscribers.record(
-        handle,
+        handle.address(),
         mqbblp::Routers::Subscriber(consumer,
                                     bmqtst::TestHelperUtil::allocator()));
 }
@@ -465,7 +471,6 @@ static void test4_generate()
     bsl::string           appId("foo", bmqtst::TestHelperUtil::allocator());
     int                   priorityCount = 2;
     int                   priority      = 2;
-    mqbmock::QueueHandle* handle        = 0;
     unsigned int          subQueueId    = 13;
 
     in.appId() = appId;
@@ -489,10 +494,16 @@ static void test4_generate()
         }
     }
 
-    appContext
-        .load(++handle, &errorStream, subQueueId, upstreamSubQueueId, in, 0);
+    bsls::ObjectBuffer<mqbmock::QueueHandle> handle1, handle2;
+
+    appContext.load(handle1.address(),
+                    &errorStream,
+                    subQueueId,
+                    upstreamSubQueueId,
+                    in,
+                    0);
     BMQTST_ASSERT_EQ(errorStream.str(), "");
-    appContext.load(++handle,
+    appContext.load(handle2.address(),
                     &errorStream,
                     subQueueId + 1,
                     upstreamSubQueueId,
@@ -528,9 +539,6 @@ static void test4_generate()
 
 int main(int argc, char* argv[])
 {
-    // Initialize Crc32c
-    bmqp::Crc32c::initialize();
-
     TEST_PROLOG(bmqtst::TestHelper::e_DEFAULT);
 
     bmqp::ProtocolUtil::initialize(bmqtst::TestHelperUtil::allocator());
@@ -554,5 +562,5 @@ int main(int argc, char* argv[])
     bmqt::UriParser::shutdown();
     bmqp::ProtocolUtil::shutdown();
 
-    TEST_EPILOG(bmqtst::TestHelper::e_CHECK_DEF_GBL_ALLOC);
+    TEST_EPILOG(bmqtst::TestHelper::e_CHECK_GBL_ALLOC);
 }

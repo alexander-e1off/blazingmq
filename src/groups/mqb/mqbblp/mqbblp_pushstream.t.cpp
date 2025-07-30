@@ -16,6 +16,10 @@
 // mqbblp_pushstream.t.cpp                                            -*-C++-*-
 #include <mqbblp_pushstream.h>
 
+// MQB
+#include <mqbmock_cluster.h>
+#include <mqbmock_domain.h>
+
 // BMQ
 #include <bmqp_messageguidgenerator.h>
 
@@ -41,11 +45,13 @@ static void test1_basic()
 {
     bmqtst::TestHelper::printTestName("PushStream basic test");
 
-    bdlma::ConcurrentPool pushElementsPool(
-        sizeof(mqbblp::PushStream::Element),
-        bmqtst::TestHelperUtil::allocator());
+    bsl::shared_ptr<bdlma::ConcurrentPool> pushElementsPool(
+        bsl::allocate_shared<bdlma::ConcurrentPool>(
+            bmqtst::TestHelperUtil::allocator(),
+            sizeof(mqbblp::PushStream::Element),
+            bmqtst::TestHelperUtil::allocator()));
 
-    mqbblp::PushStream                                 ps(&pushElementsPool,
+    mqbblp::PushStream                                 ps(pushElementsPool,
                           bmqtst::TestHelperUtil::allocator());
     unsigned int                                       subQueueId = 0;
     bsl::shared_ptr<mqbblp::RelayQueueEngine_AppState> app;  // unused
@@ -70,7 +76,13 @@ static void test2_iterations()
 
     // Imitate {m1, a1}, {m2, a2}, {m1, a2}, {m2, a1}
 
-    mqbblp::PushStream ps(bsl::optional<bdlma::ConcurrentPool*>(),
+    bsl::shared_ptr<bdlma::ConcurrentPool> pushElementsPool(
+        bsl::allocate_shared<bdlma::ConcurrentPool>(
+            bmqtst::TestHelperUtil::allocator(),
+            sizeof(mqbblp::PushStream::Element),
+            bmqtst::TestHelperUtil::allocator()));
+
+    mqbblp::PushStream ps(pushElementsPool,
                           bmqtst::TestHelperUtil::allocator());
     unsigned int       subQueueId1 = 1;
     unsigned int       subQueueId2 = 2;
@@ -122,14 +134,19 @@ static void test2_iterations()
 
     mqbu::CapacityMeter dummyCapacityMeter(
         "dummy",
+        0,
         bmqtst::TestHelperUtil::allocator());
     bmqt::Uri        dummyUri("dummy", bmqtst::TestHelperUtil::allocator());
-    mqbconfm::Domain dummyDomain(bmqtst::TestHelperUtil::allocator());
+    mqbmock::Cluster dummyCluster(bmqtst::TestHelperUtil::allocator());
+    mqbmock::Domain  dummyDomain(&dummyCluster,
+                                bmqtst::TestHelperUtil::allocator());
+    mqbconfm::Domain dummyDomainConfig(bmqtst::TestHelperUtil::allocator());
 
     mqbs::InMemoryStorage dummyStorage(dummyUri,
                                        mqbu::StorageKey::k_NULL_KEY,
+                                       &dummyDomain,
                                        mqbs::DataStore::k_INVALID_PARTITION_ID,
-                                       dummyDomain,
+                                       dummyDomainConfig,
                                        &dummyCapacityMeter,
                                        bmqtst::TestHelperUtil::allocator());
 
@@ -217,5 +234,5 @@ int main(int argc, char* argv[])
 
     bmqt::UriParser::shutdown();
 
-    TEST_EPILOG(bmqtst::TestHelper::e_CHECK_DEF_GBL_ALLOC);
+    TEST_EPILOG(bmqtst::TestHelper::e_CHECK_GBL_ALLOC);
 }

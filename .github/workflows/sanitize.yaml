@@ -1,8 +1,9 @@
 name: Sanitize
 
 on:
-  pull_request_review:
-    types: [submitted]
+  workflow_run:
+    workflows: ["Tests"]
+    types: [completed]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -20,7 +21,7 @@ jobs:
             fuzz: "on"
       fail-fast: false
     runs-on: ubuntu-24.04
-    if: github.event.review.state == 'APPROVED'
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v4
       - name: Purge runner

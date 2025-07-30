@@ -232,6 +232,7 @@ Test::Test()
             d_allocator_p)
 , d_storage(d_queue.uri(),
             mqbu::StorageKey::k_NULL_KEY,
+            &d_domain,
             mqbs::DataStore::k_INVALID_PARTITION_ID,
             getDomainConfig(),
             d_domain.capacityMeter(),
@@ -246,7 +247,7 @@ Test::Test()
     bslma::ManagedPtr<mqbi::Queue> queueMp(&d_queue,
                                            0,
                                            bslma::ManagedPtrUtil::noOpDeleter);
-    d_domain.registerQueue(errorDescription, queueMp);
+    d_domain.registerQueue(queueMp);
 
     mqbconfm::Storage config;
     mqbconfm::Limits  limits;

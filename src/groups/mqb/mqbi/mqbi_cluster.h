@@ -70,9 +70,6 @@ class FixedThreadPool;
 namespace bmqt {
 class Uri;
 }
-namespace mqbc {
-class ClusterStateObserver;
-}
 namespace mqbcmd {
 class ClusterCommand;
 }
@@ -108,6 +105,8 @@ struct ClusterErrorCode {
     enum Enum {
         // Generic
         // - - - -
+        e_OK = 0,
+
         e_UNKNOWN = -10
         // Operation failed for unknown reason
         ,
@@ -147,6 +146,9 @@ struct ClusterErrorCode {
         ,
         e_NOT_REPLICA = -207
         // The node is not a replica of the partition
+        ,
+        e_CSL_FAILURE = -208
+        // Failure to apply to the CSL
     };
 
     // CLASS METHODS
@@ -289,16 +291,6 @@ class Cluster : public DispatcherClient {
     // Return a reference offering a modifiable access to the multi request
     // manager used by this cluster.
     virtual MultiRequestManagerType& multiRequestManager() = 0;
-
-    /// Register the specified `observer` to be notified of cluster state
-    /// changes.
-    virtual void
-    registerStateObserver(mqbc::ClusterStateObserver* observer) = 0;
-
-    /// Un-register the specified `observer` from being notified of cluster
-    /// state changes.
-    virtual void
-    unregisterStateObserver(mqbc::ClusterStateObserver* observer) = 0;
 
     /// Send the specified `request` with the specified `timeout` to the
     /// specified `target` node.  If `target` is 0, it is the Cluster's
@@ -499,7 +491,7 @@ struct ClusterResources {
     BlobSpPool* d_blobSpPool_p;
 
     /// Pool of PushStream elements for Proxy/Replica QueueEngine.
-    bsl::optional<bdlma::ConcurrentPool*> d_pushElementsPool;
+    bsl::shared_ptr<bdlma::ConcurrentPool> d_pushElementsPool_sp;
 
   public:
     // CREATORS
@@ -508,10 +500,11 @@ struct ClusterResources {
                               bdlbb::BlobBufferFactory* bufferFactory,
                               BlobSpPool*               blobSpPool);
 
-    explicit ClusterResources(bdlmt::EventScheduler*    scheduler,
-                              bdlbb::BlobBufferFactory* bufferFactory,
-                              BlobSpPool*               blobSpPool,
-                              bdlma::ConcurrentPool*    pushElementsPool);
+    explicit ClusterResources(
+        bdlmt::EventScheduler*                        scheduler,
+        bdlbb::BlobBufferFactory*                     bufferFactory,
+        BlobSpPool*                                   blobSpPool,
+        const bsl::shared_ptr<bdlma::ConcurrentPool>& pushElementsPool_sp);
 
     ClusterResources(const ClusterResources& copy);
 
@@ -526,8 +519,8 @@ struct ClusterResources {
     /// Returns a pointer to the shared blob objects pool
     BlobSpPool* blobSpPool() const;
 
-    /// Returns a pointer to the concurrent pool for Push elements
-    const bsl::optional<bdlma::ConcurrentPool*>& pushElementsPool() const;
+    /// Returns a shared pointer to the concurrent pool for Push elements
+    const bsl::shared_ptr<bdlma::ConcurrentPool>& pushElementsPool() const;
 };
 
 // ============================================================================
@@ -556,7 +549,7 @@ inline ClusterResources::ClusterResources(
 : d_scheduler_p(scheduler)
 , d_bufferFactory_p(bufferFactory)
 , d_blobSpPool_p(blobSpPool)
-, d_pushElementsPool()
+, d_pushElementsPool_sp()
 {
     BSLS_ASSERT_SAFE(d_scheduler_p);
     BSLS_ASSERT_SAFE(d_bufferFactory_p);
@@ -564,26 +557,26 @@ inline ClusterResources::ClusterResources(
 }
 
 inline ClusterResources::ClusterResources(
-    bdlmt::EventScheduler*    scheduler,
-    bdlbb::BlobBufferFactory* bufferFactory,
-    BlobSpPool*               blobSpPool,
-    bdlma::ConcurrentPool*    pushElementsPool)
+    bdlmt::EventScheduler*                        scheduler,
+    bdlbb::BlobBufferFactory*                     bufferFactory,
+    BlobSpPool*                                   blobSpPool,
+    const bsl::shared_ptr<bdlma::ConcurrentPool>& pushElementsPool_sp)
 : d_scheduler_p(scheduler)
 , d_bufferFactory_p(bufferFactory)
 , d_blobSpPool_p(blobSpPool)
-, d_pushElementsPool(pushElementsPool)
+, d_pushElementsPool_sp(pushElementsPool_sp)
 {
     BSLS_ASSERT_SAFE(d_scheduler_p);
     BSLS_ASSERT_SAFE(d_bufferFactory_p);
     BSLS_ASSERT_SAFE(d_blobSpPool_p);
-    BSLS_ASSERT_SAFE(d_pushElementsPool);
+    BSLS_ASSERT_SAFE(d_pushElementsPool_sp);
 }
 
 inline ClusterResources::ClusterResources(const ClusterResources& copy)
 : d_scheduler_p(copy.d_scheduler_p)
 , d_bufferFactory_p(copy.d_bufferFactory_p)
 , d_blobSpPool_p(copy.d_blobSpPool_p)
-, d_pushElementsPool(copy.d_pushElementsPool)
+, d_pushElementsPool_sp(copy.d_pushElementsPool_sp)
 {
     // NOTHING
 }
@@ -607,10 +600,10 @@ inline ClusterResources::BlobSpPool* ClusterResources::blobSpPool() const
 // Pool of shared pointers to blob to
 // use.
 
-inline const bsl::optional<bdlma::ConcurrentPool*>&
+inline const bsl::shared_ptr<bdlma::ConcurrentPool>&
 ClusterResources::pushElementsPool() const
 {
-    return d_pushElementsPool;
+    return d_pushElementsPool_sp;
 }
 
 }  // close package namespace

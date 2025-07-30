@@ -2714,28 +2714,6 @@ void Cluster::terminate(mqbu::ExitCode::Enum reason)
     mqbu::ExitUtil::shutdown(reason);  // EXIT
 }
 
-void Cluster::registerStateObserver(mqbc::ClusterStateObserver* observer)
-{
-    // executed by *ANY* thread
-
-    dispatcher()->execute(
-        bdlf::BindUtil::bind(&mqbc::ClusterState::registerObserver,
-                             &d_state,
-                             observer),
-        this);
-}
-
-void Cluster::unregisterStateObserver(mqbc::ClusterStateObserver* observer)
-{
-    // executed by *ANY* thread
-
-    dispatcher()->execute(
-        bdlf::BindUtil::bind(&mqbc::ClusterState::unregisterObserver,
-                             &d_state,
-                             observer),
-        this);
-}
-
 void Cluster::openQueue(
     const bmqt::Uri&                                          uri,
     mqbi::Domain*                                             domain,
@@ -2846,6 +2824,16 @@ void Cluster::onDomainReconfigured(const mqbi::Domain&     domain,
                              removedIds,
                              domain.name()),
         this);
+
+    // An update error is CSL error (in 'ClusterStateLedger::apply').
+    // CSL error is critical but in this case we ignore it (cannot rollback the
+    // domain config).
+    // The broker remains operational wrt the data but not meta data.
+    // New queue creation cannot succeed if mismatch is detected (see
+    // 'ClusterQueueHelper::match' calls).  Otherwise,
+    // 'RootQueueEngine::initializeAppId' would assert if there is no storage
+    // for new app(s).  Storage gets created upon 'onQueueUpdated'.
+    // Existing queues can function with new apps being unauthorized.
 }
 
 int Cluster::processCommand(mqbcmd::ClusterResult*        result,
